@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Billbook — GST Invoice & Billing Software</title>
+  <meta name="description" content="Complete GST-compatible Indian business invoice, billing, and accounting software. Works fully offline. GSTR-1, GSTR-3B, E-Invoice, E-Way Bill support.">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- QR Code library (offline local with CDN fallback) -->
+  <script src="assets/qrcode.min.js"></script>
+  <script>if(typeof QRCode==='undefined'){document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\\/script>')}</script>
+</head>
+<body>
+
+<!-- ========== COMPANY SETUP OVERLAY ========== -->
+<div class="setup-overlay" id="setup-overlay" style="display:none">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-icon">P</div>
+      <h1>Pro <span style="color:var(--color-primary)">Bill</span>book</h1>
+      <p>GST-Compliant Indian Business Suite · Offline Ready</p>
+    </div>
+
+    <!-- Wizard Steps -->
+    <div class="wizard-steps">
+      <div class="wizard-step active" id="wstep-1">
+        <div class="wizard-step-circle">1</div>
+        <div class="wizard-step-label">Business</div>
+      </div>
+      <div class="wizard-connector" id="wconn-1"></div>
+      <div class="wizard-step" id="wstep-2">
+        <div class="wizard-step-circle">2</div>
+        <div class="wizard-step-label">Tax/GST</div>
+      </div>
+      <div class="wizard-connector" id="wconn-2"></div>
+      <div class="wizard-step" id="wstep-3">
+        <div class="wizard-step-circle">3</div>
+        <div class="wizard-step-label">Bank</div>
+      </div>
+      <div class="wizard-connector" id="wconn-3"></div>
+      <div class="wizard-step" id="wstep-4">
+        <div class="wizard-step-circle">4</div>
+        <div class="wizard-step-label">Invoice</div>
+      </div>
+    </div>
+
+    <h3 id="setup-step-title" style="margin-bottom:16px;color:var(--color-primary)">Business Identity</h3>
+    <div id="setup-step-content"></div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:20px;gap:10px">
+      <button class="btn btn-secondary" id="setup-prev-btn" style="display:none">← Back</button>
+      <button class="btn btn-primary btn-lg" id="setup-next-btn" style="margin-left:auto">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP SHELL ========== -->
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">P</div>
+      <div class="sidebar-logo-text">Pro <span>Bill</span>book</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Main</div>
+      <div class="nav-item active" data-page="dashboard" onclick="App.navigate('dashboard')">
+        <span class="nav-item-icon">🏠</span> <span>Dashboard</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Transactions</div>
+      <div class="nav-item" data-page="sales" onclick="App.navigate('sales')">
+        <span class="nav-item-icon">🧾</span> <span>Sales Invoice</span>
+      </div>
+      <div class="nav-item" data-page="purchases" onclick="App.navigate('purchases')">
+        <span class="nav-item-icon">🛒</span> <span>Purchases</span>
+      </div>
+      <div class="nav-item" data-page="payments" onclick="App.navigate('payments')">
+        <span class="nav-item-icon">💰</span> <span>Payments</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Masters</div>
+      <div class="nav-item" data-page="parties" onclick="App.navigate('parties')">
+        <span class="nav-item-icon">👥</span> <span>Parties</span>
+      </div>
+      <div class="nav-item" data-page="items" onclick="App.navigate('items')">
+        <span class="nav-item-icon">📦</span> <span>Stock / Items</span>
+      </div>
+      <div class="nav-item" data-page="hsn" onclick="App.navigate('hsn')">
+        <span class="nav-item-icon">🏷️</span> <span>HSN Master</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Accounts</div>
+      <div class="nav-item" data-page="ledger" onclick="App.navigate('ledger')">
+        <span class="nav-item-icon">📊</span> <span>Ledger</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">GST & Compliance</div>
+      <div class="nav-item" data-page="gstr" onclick="App.navigate('gstr')">
+        <span class="nav-item-icon">📋</span> <span>GSTR Returns</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Tools</div>
+      <div class="nav-item" data-page="print-center" onclick="App.navigate('print-center')">
+        <span class="nav-item-icon">🖨️</span> <span>Print Center</span>
+      </div>
+      <div class="nav-item" data-page="settings" onclick="App.navigate('settings')">
+        <span class="nav-item-icon">⚙️</span> <span>Settings</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-page-title">🏠 Dashboard</div>
+      <div class="topbar-actions">
+        <span class="fy-badge" id="fy-badge">FY 25-26</span>
+        <span class="text-sm text-muted" id="topbar-company-name">Loading...</span>
+        <button class="btn btn-ghost btn-sm" title="Export Data" onclick="App.exportData()">💾 Backup</button>
+        <button class="btn btn-ghost btn-sm" title="Import Data" onclick="App.importData()">📥 Restore</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- ====== DASHBOARD PAGE ====== -->
+      <div class="page active" id="page-dashboard">
+        <!-- Stats Row -->
+        <div class="stats-row" style="margin-bottom:20px">
+          <div class="stat-card">
+            <div class="stat-label">This Month Sales</div>
+            <div class="stat-value text-success" id="dash-month-sales">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">This Month GST</div>
+            <div class="stat-value text-primary" id="dash-month-tax">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Invoices</div>
+            <div class="stat-value" id="dash-total-invoices">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Parties</div>
+            <div class="stat-value" id="dash-parties">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Items</div>
+            <div class="stat-value" id="dash-items">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Low Stock Items</div>
+            <div class="stat-value text-warning" id="dash-low-stock">0</div>
+          </div>
+        </div>
+
+        <!-- Feature Tiles -->
+        <h3 style="margin-bottom:14px;font-family:var(--font-heading)">Quick Actions</h3>
+        <div class="tiles-grid">
+          <div class="tile" style="--tile-color:#f59e0b" onclick="SalesModule.openNew()">
+            <div class="tile-icon">🧾</div>
+            <div class="tile-title">New Sales Invoice</div>
+            <div class="tile-desc">Create a GST invoice with auto CGST/SGST/IGST calculation, E-Invoice & E-Way Bill</div>
+          </div>
+          <div class="tile" style="--tile-color:#10b981" onclick="PurchaseModule.openNew()">
+            <div class="tile-icon">🛒</div>
+            <div class="tile-title">Purchase Entry</div>
+            <div class="tile-desc">Record supplier bills from received invoices. Auto-updates stock levels</div>
+          </div>
+          <div class="tile" style="--tile-color:#3b82f6" onclick="App.navigate('parties')">
+            <div class="tile-icon">👥</div>
+            <div class="tile-title">Manage Parties</div>
+            <div class="tile-desc">Add customers & suppliers with GSTIN validation. Share ledger via WhatsApp</div>
+          </div>
+          <div class="tile" style="--tile-color:#8b5cf6" onclick="App.navigate('ledger')">
+            <div class="tile-icon">📊</div>
+            <div class="tile-title">Party Ledger</div>
+            <div class="tile-desc">View outstanding balances, transaction history. Print & share ledger statements</div>
+          </div>
+          <div class="tile" style="--tile-color:#ec4899" onclick="PaymentsModule.showReceiptModal({id:0,invoiceNo:'',partyName:'',grandTotal:0})">
+            <div class="tile-icon">💰</div>
+            <div class="tile-title">Record Payment</div>
+            <div class="tile-desc">Log receipts & payments. Cash, bank, UPI, cheque. Auto-reconcile ledger</div>
+          </div>
+          <div class="tile" style="--tile-color:#06b6d4" onclick="App.navigate('items')">
+            <div class="tile-icon">📦</div>
+            <div class="tile-title">Stock Management</div>
+            <div class="tile-desc">Track inventory levels, low stock alerts. Auto-updated on sale & purchase</div>
+          </div>
+          <div class="tile" style="--tile-color:#f59e0b" onclick="App.navigate('gstr')">
+            <div class="tile-icon">📋</div>
+            <div class="tile-title">GSTR JSON Export</div>
+            <div class="tile-desc">Generate GSTR-1, GSTR-3B, GSTR-9 JSON files for direct NIC portal upload</div>
+          </div>
+          <div class="tile" style="--tile-color:#ef4444" onclick="App.navigate('gstr'); setTimeout(()=>document.getElementById('gstr-tab-einv')?.click(),100)">
+            <div class="tile-icon">⚡</div>
+            <div class="tile-title">E-Invoice (IRP)</div>
+            <div class="tile-desc">Generate IRN-compatible JSON payload with QR code for E-Invoice upload</div>
+          </div>
+          <div class="tile" style="--tile-color:#10b981" onclick="App.navigate('gstr'); setTimeout(()=>document.getElementById('gstr-tab-ewb')?.click(),100)">
+            <div class="tile-icon">🚚</div>
+            <div class="tile-title">E-Way Bill</div>
+            <div class="tile-desc">Generate NIC-compatible E-Way Bill JSON. Part-A, Part-B with vehicle details</div>
+          </div>
+          <div class="tile" style="--tile-color:#8b5cf6" onclick="App.navigate('hsn')">
+            <div class="tile-icon">🏷️</div>
+            <div class="tile-title">HSN Master</div>
+            <div class="tile-desc">Pre-loaded 200+ HSN/SAC codes with GST rates. Add custom codes easily</div>
+          </div>
+          <div class="tile" style="--tile-color:#3b82f6" onclick="App.navigate('print-center')">
+            <div class="tile-icon">🖨️</div>
+            <div class="tile-title">Print Center</div>
+            <div class="tile-desc">Print invoices (3 copies), ledger, stock report, payment receipts. A4 optimised</div>
+          </div>
+          <div class="tile" style="--tile-color:#f59e0b" onclick="App.navigate('settings')">
+            <div class="tile-icon">⚙️</div>
+            <div class="tile-title">Company Settings</div>
+            <div class="tile-desc">Update GSTIN, bank details, invoice prefix, terms & signature</div>
+          </div>
+        </div>
+
+        <!-- Recent + Alerts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📈 Recent Invoices</div>
+              <button class="btn btn-sm btn-secondary" onclick="App.navigate('sales')">View All</button>
+            </div>
+            <div id="dash-recent-invoices"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔔 Alerts & Status</div>
+              <button class="btn btn-sm btn-secondary" onclick="App.renderDashboard()">🔄 Refresh</button>
+            </div>
+            <div id="dash-alerts"></div>
+            <div style="margin-top:16px">
+              <div class="card-title text-sm" style="margin-bottom:8px">⚡ Quick Links</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <button class="btn btn-sm btn-info" onclick="GSTRModule.render();App.navigate('gstr')">GSTR-1</button>
+                <button class="btn btn-sm btn-info" onclick="GSTRModule.render();App.navigate('gstr')">GSTR-3B</button>
+                <button class="btn btn-sm btn-success" onclick="PrintModule.printStockReport()">Stock Report</button>
+                <button class="btn btn-sm btn-secondary" onclick="App.exportData()">💾 Backup Data</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== SALES INVOICE LIST ====== -->
+      <div class="page" id="page-sales">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🧾 Sales Invoices</div>
+            <div class="page-subtitle">Create and manage GST-compliant tax invoices</div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="SalesModule.openNew()">➕ New Invoice</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" class="form-control" placeholder="Search invoice..." style="max-width:250px" oninput="SalesModule.render()">
+          <input type="date" class="form-control" id="inv-filter-from" placeholder="From Date">
+          <input type="date" class="form-control" id="inv-filter-to" placeholder="To Date">
+          <select class="form-control" id="inv-filter-status">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Invoice No</th><th>Date</th><th>Party</th><th>Type</th>
+                <th class="text-right">Taxable</th><th class="text-right">GST</th>
+                <th class="text-right">Total</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoice-list-body">
+              <tr><td colspan="9"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== INVOICE FORM ====== -->
+      <div class="page" id="page-invoice-form">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🧾 Tax Invoice</div>
+            <div class="page-subtitle">GST-compliant invoice with CGST/SGST/IGST auto-calculation</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="App.navigate('sales')">← Back</button>
+            <button class="btn btn-secondary" onclick="SalesModule.save('draft')">💾 Save Draft</button>
+            <button class="btn btn-primary" onclick="SalesModule.save('confirmed')">✅ Save & Confirm</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+          <!-- Left column -->
+          <div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header"><div class="card-title">🧾 Invoice Details</div></div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Invoice Number <span class="req">*</span></label>
+                  <input class="form-control font-mono" id="inv-no" placeholder="Auto-generated" readonly>
+                </div>
+                <div class="form-group">
+                  <label>Invoice Date <span class="req">*</span></label>
+                  <input class="form-control" id="inv-date" type="date" onchange="SalesModule.calculateTotals()">
+                </div>
+                <div class="form-group">
+                  <label>Due Date</label>
+                  <input class="form-control" id="inv-due" type="date">
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Supply Type</label>
+                  <select class="form-control" id="inv-supply-type" onchange="SalesModule.lineItems.forEach((_,i)=>SalesModule.updateLine(i))">
+                    <option value="auto">Auto (based on party state)</option>
+                    <option value="CGST_SGST">Intrastate — CGST + SGST</option>
+                    <option value="IGST">Interstate — IGST</option>
+                  </select>
+                </div>
+                <div class="form-group" style="display:flex;align-items:flex-end;gap:16px;padding-bottom:2px">
+                  <label class="toggle">
+                    <input type="checkbox" class="toggle-input" id="inv-round-off" checked>
+                    <div class="toggle-slider"></div>
+                    <span>Round Off</span>
+                  </label>
+                  <label class="toggle">
+                    <input type="checkbox" class="toggle-input" id="inv-einv-toggle">
+                    <div class="toggle-slider"></div>
+                    <span>E-Invoice</span>
+                  </label>
+                  <label class="toggle">
+                    <input type="checkbox" class="toggle-input" id="inv-ewb-toggle">
+                    <div class="toggle-slider"></div>
+                    <span>E-Way Bill</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Party Selection -->
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header"><div class="card-title">👤 Bill To Party</div>
+                <button class="btn btn-sm btn-secondary" onclick="PartiesModule.showAddModal({type:'customer'})">+ New Party</button>
+              </div>
+              <div class="autocomplete-wrap form-group">
+                <label>Search Party <span class="req">*</span></label>
+                <input class="form-control" id="inv-party-name" placeholder="Type party name or GSTIN..." oninput="SalesModule.partySearch(this.value)">
+                <div class="autocomplete-dropdown" id="inv-party-drop"></div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Party GSTIN</label>
+                  <div class="gstin-display" id="inv-party-gstin">-</div>
+                </div>
+                <div class="form-group">
+                  <label>State</label>
+                  <div id="inv-party-state" class="text-sm" style="padding:9px 0;color:var(--text-secondary)">-</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Line Items -->
+            <div class="card" style="margin-bottom:14px">
+              <div class="card-header">
+                <div class="card-title">📦 Items</div>
+                <button class="btn btn-sm btn-primary" onclick="SalesModule.addLine()">+ Add Item</button>
+              </div>
+              <div class="items-table-wrap">
+                <table class="items-table">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Item / Description</th><th>HSN</th>
+                      <th>Qty</th><th>Unit</th><th>Rate (₹)</th><th>Disc%</th>
+                      <th>GST%</th><th>Taxable</th><th>GST Amt</th><th>Total</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="inv-items-body"></tbody>
+                </table>
+              </div>
+              <!-- GST Breakup -->
+              <div style="margin-top:10px">
+                <div class="text-xs text-muted font-semibold" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">GST-wise Breakup</div>
+                <div class="table-wrapper">
+                  <table class="table" style="font-size:0.78rem">
+                    <thead>
+                      <tr>
+                        <th>HSN</th><th>GST Rate</th><th>Taxable</th>
+                        <th id="gst-head-cgst">CGST</th><th id="gst-head-sgst">SGST</th>
+                        <th id="gst-head-igst" style="display:none">IGST</th>
+                      </tr>
+                    </thead>
+                    <tbody id="gst-breakup-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narration -->
+            <div class="card">
+              <div class="form-group" style="margin:0">
+                <label>Narration / Notes</label>
+                <textarea class="form-control" id="inv-narration" rows="2" placeholder="Internal notes, delivery instructions..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column - Totals -->
+          <div>
+            <div class="card" style="position:sticky;top:80px">
+              <div class="card-header"><div class="card-title">💰 Invoice Summary</div></div>
+              <div class="invoice-totals">
+                <div class="total-row"><span>Taxable Amount</span><span class="amount" id="tot-taxable">₹0.00</span></div>
+                <div id="tot-cgst-row" class="total-row"><span>CGST</span><span class="amount" id="tot-cgst">₹0.00</span></div>
+                <div id="tot-sgst-row" class="total-row"><span>SGST</span><span class="amount" id="tot-sgst">₹0.00</span></div>
+                <div id="tot-igst-row" class="total-row" style="display:none"><span>IGST</span><span class="amount" id="tot-igst">₹0.00</span></div>
+                <div class="total-row" id="tot-cess-row"><span>Cess</span><span class="amount" id="tot-cess">₹0.00</span></div>
+                <div class="total-row"><span>Round Off</span><span class="amount" id="tot-roundoff">₹0.00</span></div>
+                <div class="total-row grand"><span>Grand Total</span><span class="amount text-primary" id="tot-grand">₹0.00</span></div>
+              </div>
+              <div class="amount-words" style="margin-top:10px;padding:8px;background:var(--bg-secondary);border-radius:6px;font-size:0.75rem">
+                <div id="tot-words">Zero Rupees Only</div>
+              </div>
+
+              <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-primary btn-block" onclick="SalesModule.save('confirmed')">✅ Save Invoice</button>
+                <button class="btn btn-secondary btn-block" onclick="SalesModule.save('draft')">💾 Save as Draft</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== PURCHASES LIST ====== -->
+      <div class="page" id="page-purchases">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🛒 Purchase Entries</div>
+            <div class="page-subtitle">Record supplier bills — auto-updates stock & input tax credit</div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="PurchaseModule.openNew()">➕ New Purchase</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Bill No</th><th>Date</th><th>Supplier</th><th>GSTIN</th><th class="text-right">Taxable</th><th class="text-right">Total</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="purchase-list-body">
+              <tr><td colspan="7"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== PURCHASE FORM ====== -->
+      <div class="page" id="page-purchase-form">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🛒 Purchase Entry</div>
+            <div class="page-subtitle">Record supplier bill — items will be added to stock</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="App.navigate('purchases')">← Back</button>
+            <button class="btn btn-primary" onclick="PurchaseModule.save()">✅ Save Purchase</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Supplier Bill Number <span class="req">*</span></label>
+              <input class="form-control" id="pur-billno" placeholder="Supplier's invoice number">
+            </div>
+            <div class="form-group">
+              <label>Bill Date <span class="req">*</span></label>
+              <input class="form-control" id="pur-date" type="date">
+            </div>
+            <div class="form-group">
+              <label>Supplier / Party <span class="req">*</span></label>
+              <div class="autocomplete-wrap">
+                <input class="form-control" id="pur-supplier-name" placeholder="Search supplier..." oninput="PurchaseModule.partySearch(this.value)">
+                <div class="autocomplete-dropdown" id="pur-supplier-drop"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-header" style="margin-top:10px"><div class="card-title">📦 Items Received</div>
+            <button class="btn btn-sm btn-primary" onclick="PurchaseModule.addLine()">+ Add Item</button>
+          </div>
+          <div class="items-table-wrap">
+            <table class="items-table">
+              <thead><tr><th>#</th><th>Item</th><th>HSN</th><th>Qty</th><th>Unit</th><th>Rate</th><th>GST%</th><th>Taxable</th><th>Total</th><th></th></tr></thead>
+              <tbody id="pur-items-body"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px">
+            <div class="invoice-totals" style="min-width:250px">
+              <div class="total-row"><span>Taxable</span><span id="pur-tot-taxable">₹0.00</span></div>
+              <div class="total-row"><span>Total Tax</span><span id="pur-tot-tax">₹0.00</span></div>
+              <div class="total-row grand"><span>Grand Total</span><span class="text-primary" id="pur-tot-grand">₹0.00</span></div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:12px">
+            <label>Narration</label>
+            <input class="form-control" id="pur-narration" placeholder="Purchase narration...">
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== PARTIES ====== -->
+      <div class="page" id="page-parties">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">👥 Party Management</div>
+            <div class="page-subtitle">Customers, suppliers — GSTIN validation, ledger, WhatsApp sharing</div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="PartiesModule.showAddModal()">➕ Add Party</button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:300px">
+            <span class="search-icon">🔍</span>
+            <input class="form-control" id="party-search" placeholder="Search by name, GSTIN, mobile..." oninput="PartiesModule.renderList()">
+          </div>
+          <button class="btn btn-secondary party-filter-btn active" id="pf-all" onclick="PartiesModule.setFilter('all')">All</button>
+          <button class="btn btn-secondary party-filter-btn" id="pf-customer" onclick="PartiesModule.setFilter('customer')">Customers</button>
+          <button class="btn btn-secondary party-filter-btn" id="pf-supplier" onclick="PartiesModule.setFilter('supplier')">Suppliers</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Name</th><th>Type</th><th>GSTIN</th><th>State</th><th>Mobile</th><th>GST Type</th><th>Balance</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="party-list-body">
+              <tr><td colspan="8"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== STOCK / ITEMS ====== -->
+      <div class="page" id="page-items">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">📦 Stock & Items</div>
+            <div class="page-subtitle">Inventory management with real-time stock tracking</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="PrintModule.printStockReport()">🖨️ Print Stock</button>
+            <button class="btn btn-primary btn-lg" onclick="ItemsModule.showAddModal()">➕ Add Item</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:300px">
+            <span class="search-icon">🔍</span>
+            <input class="form-control" id="item-search" placeholder="Search by name or HSN..." oninput="ItemsModule.renderList()">
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Item Name</th><th>HSN</th><th>GST%</th><th>Unit</th><th class="text-right">Purchase ₹</th><th class="text-right">Sale ₹</th><th>Stock</th><th>Type</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="item-list-body">
+              <tr><td colspan="9"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== HSN MASTER ====== -->
+      <div class="page" id="page-hsn">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🏷️ HSN / SAC Master</div>
+            <div class="page-subtitle">Pre-loaded 200+ HSN codes with GST rates. Add custom codes.</div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="HSNModule.showAddModal()">➕ Add HSN/SAC</button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:300px">
+            <span class="search-icon">🔍</span>
+            <input class="form-control" id="hsn-search" placeholder="Search HSN code or description..." oninput="HSNModule.render()">
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>HSN/SAC Code</th><th>Description</th><th>GST Rate</th><th>Type</th><th>Actions</th></tr></thead>
+            <tbody id="hsn-list-body">
+              <tr><td colspan="5"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== PAYMENTS ====== -->
+      <div class="page" id="page-payments">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">💰 Payment Management</div>
+            <div class="page-subtitle">Receipts, payments, journal entries — Cash/Bank/UPI/Cheque</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success" onclick="PaymentsModule.showReceiptModal({id:0,invoiceNo:'',partyName:'',grandTotal:0})">💰 Receive Payment</button>
+            <button class="btn btn-danger" onclick="PaymentsModule.showPaymentModal()">💸 Make Payment</button>
+            <button class="btn btn-info" onclick="PaymentsModule.showJournalModal()">📔 Journal</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Type</th><th>Party</th><th>Mode</th><th>Reference</th><th>Narration</th><th class="text-right">Amount</th><th>Actions</th></tr></thead>
+            <tbody id="payment-list-body">
+              <tr><td colspan="8"><div class="loading"><div class="loader"></div>Loading...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== LEDGER ====== -->
+      <div class="page" id="page-ledger">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">📊 Ledger Management</div>
+            <div class="page-subtitle">Party-wise ledger, day book, outstanding balances</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('ledger-parties-tab').style.display='';document.getElementById('ledger-daybook-tab').style.display='none'">Party Ledger</div>
+          <div class="tab" onclick="this.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('ledger-parties-tab').style.display='none';document.getElementById('ledger-daybook-tab').style.display='';LedgerModule.renderDayBook()">Day Book</div>
+        </div>
+        <div id="ledger-parties-tab">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px" id="ledger-party-list">
+            <div class="loading"><div class="loader"></div>Loading...</div>
+          </div>
+        </div>
+        <div id="ledger-daybook-tab" style="display:none">
+          <div class="filter-bar">
+            <div class="form-group" style="margin:0">
+              <label>From</label>
+              <input class="form-control" type="date" id="daybook-from" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label>To</label>
+              <input class="form-control" type="date" id="daybook-to" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <button class="btn btn-primary" onclick="LedgerModule.renderDayBook()">🔍 Filter</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Narration</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
+              <tbody id="daybook-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== GSTR RETURNS ====== -->
+      <div class="page" id="page-gstr">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">📋 GST Returns & Compliance</div>
+            <div class="page-subtitle">Generate NIC-compatible JSON for GSTR-1, GSTR-3B, GSTR-9, E-Invoice, E-Way Bill</div>
+          </div>
+        </div>
+
+        <div class="stats-row" style="margin-bottom:20px">
+          <div class="stat-card"><div class="stat-label">Total Confirmed Invoices</div><div class="stat-value" id="gstr-inv-count">0</div></div>
+          <div class="stat-card"><div class="stat-label">This Month Invoices</div><div class="stat-value" id="gstr-month-count">0</div></div>
+          <div class="stat-card"><div class="stat-label">This Month Sales</div><div class="stat-value text-primary" id="gstr-month-total">₹0</div></div>
+        </div>
+
+        <div class="tabs" id="gstr-tabs">
+          <div class="tab active" onclick="switchGSTRTab(this,'gstr-tab-1')">GSTR-1</div>
+          <div class="tab" onclick="switchGSTRTab(this,'gstr-tab-3b')">GSTR-3B</div>
+          <div class="tab" onclick="switchGSTRTab(this,'gstr-tab-9')">GSTR-9 Annual</div>
+          <div class="tab" id="gstr-tab-einv-btn" onclick="switchGSTRTab(this,'gstr-tab-einv')">⚡ E-Invoice</div>
+          <div class="tab" id="gstr-tab-ewb-btn" onclick="switchGSTRTab(this,'gstr-tab-ewb')">🚚 E-Way Bill</div>
+        </div>
+
+        <!-- GSTR-1 Tab -->
+        <div id="gstr-tab-1">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📋 GSTR-1 — Outward Supplies Return</div></div>
+            <div class="alert alert-info" style="margin-bottom:16px">GSTR-1 contains details of all outward supplies (sales). Download JSON and upload directly to GST portal.</div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Return Period (Month)</label>
+                <select class="form-control" id="gstr1-period">
+                  <option value="">-- Select Month --</option>
+                  <script>document.write(GSTRModule?.getMonthOptions?.() || '')</script>
+                </select>
+              </div>
+              <div class="form-group" style="display:flex;align-items:flex-end;gap:8px">
+                <button class="btn btn-info" onclick="GSTRModule.previewGSTR1Summary()">👁️ Preview</button>
+                <button class="btn btn-primary btn-lg" onclick="GSTRModule.generateGSTR1()">📥 Download GSTR-1 JSON</button>
+              </div>
+            </div>
+            <div id="gstr1-preview"></div>
+          </div>
+        </div>
+
+        <!-- GSTR-3B Tab -->
+        <div id="gstr-tab-3b" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📋 GSTR-3B — Monthly Summary Return</div></div>
+            <div class="alert alert-info" style="margin-bottom:16px">GSTR-3B is a monthly self-declaration return with summary of outward/inward supplies and ITC details.</div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Return Period</label>
+                <select class="form-control" id="gstr3b-period">
+                  <option value="">-- Select Month --</option>
+                  <script>document.write(GSTRModule?.getMonthOptions?.() || '')</script>
+                </select>
+              </div>
+              <div class="form-group" style="display:flex;align-items:flex-end">
+                <button class="btn btn-primary btn-lg" onclick="GSTRModule.generateGSTR3B()">📥 Download GSTR-3B JSON</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GSTR-9 Tab -->
+        <div id="gstr-tab-9" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📋 GSTR-9 — Annual Return</div></div>
+            <div class="alert alert-warning" style="margin-bottom:16px">⚠️ Annual return for the full financial year. Mandatory for taxpayers with turnover above ₹2 Crore.</div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Financial Year</label>
+                <select class="form-control" id="gstr9-fy">
+                  <option value="2526" selected>2025-26</option>
+                  <option value="2425">2024-25</option>
+                  <option value="2324">2023-24</option>
+                </select>
+              </div>
+              <div class="form-group" style="display:flex;align-items:flex-end">
+                <button class="btn btn-primary btn-lg" onclick="GSTRModule.generateGSTR9()">📥 Download GSTR-9 JSON</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- E-Invoice Tab -->
+        <div id="gstr-tab-einv" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">⚡ E-Invoice (IRP) JSON Generator</div></div>
+            <div class="alert alert-info" style="margin-bottom:16px">
+              E-Invoice JSON is generated from saved invoices. Go to Sales Invoices → click ⚡ on any invoice to generate IRN-compatible JSON with QR code.
+            </div>
+            <button class="btn btn-primary" onclick="App.navigate('sales')">→ Go to Sales Invoices</button>
+          </div>
+        </div>
+
+        <!-- E-Way Bill Tab -->
+        <div id="gstr-tab-ewb" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🚚 E-Way Bill JSON Generator</div></div>
+            <div class="alert alert-info" style="margin-bottom:16px">
+              E-Way Bill JSON is generated from saved invoices. Go to Sales Invoices and use the E-Way Bill option when creating an invoice.
+            </div>
+            <button class="btn btn-primary" onclick="App.navigate('sales')">→ Go to Sales Invoices</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== PRINT CENTER ====== -->
+      <div class="page" id="page-print-center">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">🖨️ Print Center</div>
+            <div class="page-subtitle">Print invoices, ledger statements, receipts, and reports</div>
+          </div>
+        </div>
+        <div class="gstr-cards">
+          <div class="gstr-card" onclick="App.navigate('sales')">
+            <div class="gstr-card-icon">🧾</div>
+            <div class="gstr-card-title">Invoice Print</div>
+            <div class="gstr-card-desc">Print 3 copies (Original/Duplicate/Triplicate) with E-Invoice QR code and E-Way Bill section. A4 optimised.</div>
+          </div>
+          <div class="gstr-card" onclick="App.navigate('ledger')">
+            <div class="gstr-card-icon">📊</div>
+            <div class="gstr-card-title">Party Ledger Print</div>
+            <div class="gstr-card-desc">Print detailed party ledger with running balance. Share via WhatsApp/Print.</div>
+          </div>
+          <div class="gstr-card" onclick="PrintModule.printStockReport()">
+            <div class="gstr-card-icon">📦</div>
+            <div class="gstr-card-title">Stock Report</div>
+            <div class="gstr-card-desc">Print all inventory with current stock, reorder levels, and status. Landscape A4.</div>
+          </div>
+          <div class="gstr-card" onclick="App.navigate('payments')">
+            <div class="gstr-card-icon">💰</div>
+            <div class="gstr-card-title">Payment Receipt</div>
+            <div class="gstr-card-desc">Print payment acknowledgement receipt. A5 size, professional format.</div>
+          </div>
+          <div class="gstr-card" onclick="App.navigate('gstr')">
+            <div class="gstr-card-icon">📋</div>
+            <div class="gstr-card-title">GSTR Summary Print</div>
+            <div class="gstr-card-desc">Export GSTR JSON files for NIC portal upload. GSTR-1, GSTR-3B, GSTR-9.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== SETTINGS ====== -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="page-title">⚙️ Company Settings</div>
+            <div class="page-subtitle">Update company information, GSTIN, bank details, and invoice preferences</div>
+          </div>
+        </div>
+        <div id="settings-content">
+          <div class="loading"><div class="loader"></div>Loading settings...</div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title">💾 Data Management</div></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="App.exportData()">💾 Export All Data (Backup)</button>
+            <button class="btn btn-secondary" onclick="App.importData()">📥 Import Data (Restore)</button>
+            <button class="btn btn-danger" onclick="if(confirm('Reset company setup?')) { db.delete(\'company\',1); location.reload(); }">🔄 Re-run Setup Wizard</button>
+          </div>
+          <div class="alert alert-warning" style="margin-top:10px">⚠️ All data is stored locally in your browser. Regularly use <strong>Export Backup</strong> to save a copy of your data.</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Party Modal -->
+<div class="modal-overlay" id="party-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="party-modal-title">Add Party</div>
+      <button class="modal-close" onclick="App.closeModal('party-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="party-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('party-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="PartiesModule.saveParty()">💾 Save Party</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item Modal -->
+<div class="modal-overlay" id="item-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="item-modal-title">Add Item</div>
+      <button class="modal-close" onclick="App.closeModal('item-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="item-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('item-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="ItemsModule.saveItem()">💾 Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- HSN Modal -->
+<div class="modal-overlay" id="hsn-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add HSN/SAC Code</div>
+      <button class="modal-close" onclick="App.closeModal('hsn-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="hsn-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('hsn-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="HSNModule.save()">💾 Save HSN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ledger Modal -->
+<div class="modal-overlay" id="ledger-modal-overlay">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <div class="modal-title" id="ledger-modal-title">Party Ledger</div>
+      <button class="modal-close" onclick="App.closeModal('ledger-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="ledger-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('ledger-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">📤 Share Ledger</div>
+      <button class="modal-close" onclick="App.closeModal('share-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="share-modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('share-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="payment-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="pay-modal-title">Payment</div>
+      <button class="modal-close" onclick="App.closeModal('payment-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="pay-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('payment-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="PaymentsModule.save()">💾 Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Ledger Modal -->
+<div class="modal-overlay" id="stock-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="stock-modal-title">Stock Ledger</div>
+      <button class="modal-close" onclick="App.closeModal('stock-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="stock-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('stock-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- E-Invoice Modal -->
+<div class="modal-overlay" id="einvoice-modal-overlay">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <div class="modal-title">⚡ E-Invoice (IRP) — IRN Generated</div>
+      <button class="modal-close" onclick="App.closeModal('einvoice-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:14px">⚠️ This is an offline IRN (for testing/preparation). For live E-Invoice, upload the JSON to the IRP portal or use your GSP's API.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="summary-item"><div class="summary-item-label">IRN (64-char)</div><div class="font-mono text-xs" id="einv-modal-irn" style="word-break:break-all;color:var(--color-info)"></div></div>
+        <div class="summary-item"><div class="summary-item-label">Ack Number</div><div class="summary-item-value" id="einv-modal-ack"></div></div>
+        <div class="summary-item"><div class="summary-item-label">Ack Date/Time</div><div class="summary-item-value text-sm" id="einv-modal-dt"></div></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div>
+          <div class="text-xs text-muted font-semibold" style="margin-bottom:6px">QR Code</div>
+          <div id="einv-qr-container" style="border:1px solid var(--border-color);padding:8px;border-radius:8px;background:#fff"></div>
+        </div>
+        <div style="flex:1">
+          <div class="text-xs text-muted font-semibold" style="margin-bottom:6px">JSON Payload (IRP Schema v1.1)</div>
+          <pre id="einv-json-preview" style="background:var(--bg-secondary);padding:12px;border-radius:8px;font-size:0.7rem;max-height:300px;overflow-y:auto;white-space:pre-wrap"></pre>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('einvoice-modal')">Close</button>
+      <button class="btn btn-info" onclick="EInvoiceModule.downloadJSON()">📥 Download JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- E-Way Bill Modal -->
+<div class="modal-overlay" id="ewb-modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">🚚 Generate E-Way Bill</div>
+      <button class="modal-close" onclick="App.closeModal('ewb-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="ewb-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="App.closeModal('ewb-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="EWayBillModule.save()">🚚 Generate & Download JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="data/hsn_data.js"></script>
+<script src="db.js"></script>
+<script src="modules/company.js"></script>
+<script src="modules/parties.js"></script>
+<script src="modules/items.js"></script>
+<script src="modules/sales.js"></script>
+<script src="modules/payments.js"></script>
+<script src="modules/gstr.js"></script>
+<script src="modules/print.js"></script>
+<script src="app.js"></script>
+
+<script>
+// GSTR tab switcher
+function switchGSTRTab(btn, tabId) {
+  document.querySelectorAll('#gstr-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['gstr-tab-1','gstr-tab-3b','gstr-tab-9','gstr-tab-einv','gstr-tab-ewb'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? '' : 'none';
+  });
+}
+
+// Populate GSTR period selects after modules load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const opts = GSTRModule.getMonthOptions();
+    ['gstr1-period','gstr3b-period'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<option value="">-- Select Month --</option>' + opts;
+    });
+  }, 100);
+});
+</script>
+</body>
+</html>
