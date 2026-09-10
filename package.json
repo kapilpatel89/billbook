@@ -1,0 +1,22 @@
+{
+  "name": "pro-billbook-gst",
+  "version": "1.0.0",
+  "description": "Indian GST Invoicing & Billing Software - 100% Offline Local Windows Solution",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "setup": "node server.js --init"
+  },
+  "keywords": [
+    "gst",
+    "invoice",
+    "billing",
+    "indian-tax",
+    "offline",
+    "ewaybill",
+    "einvoice",
+    "gstr"
+  ],
+  "author": "Kapil Patel",
+  "license": "ISC"
+}

@@ -34,6 +34,34 @@ const App = {
     const nameEl = document.getElementById('topbar-company-name');
     if (nameEl) nameEl.textContent = co?.name || 'Pro Billbook';
     this.updateFYBadge();
+    this.updateStorageBadge();
+  },
+
+  updateStorageBadge() {
+    const badge = document.getElementById('storage-mode-badge');
+    if (!badge) return;
+    if (db.isServerOnline) {
+      badge.textContent = '🟢 Local Disk: database\\';
+      badge.style.background = 'rgba(16,185,129,0.15)';
+      badge.style.color = '#10b981';
+      badge.style.borderColor = 'rgba(16,185,129,0.4)';
+      badge.title = 'Saved to local Windows folders. Click to open invoices folder in Explorer.';
+    } else {
+      badge.textContent = '🟡 Browser Offline';
+      badge.style.background = 'rgba(245,158,11,0.15)';
+      badge.style.color = '#f59e0b';
+      badge.style.borderColor = 'rgba(245,158,11,0.4)';
+      badge.title = 'Running on browser storage. Start via start.bat for local disk database.';
+    }
+  },
+
+  openBillsFolder() {
+    if (db.isServerOnline) {
+      db.openLocalFolder('invoices');
+      this.toast('Opening local data\\invoices folder in Explorer...', 'info');
+    } else {
+      this.toast('Start Pro Billbook using start.bat to access local Windows folders.', 'warning');
+    }
   },
 
   updateFYBadge() {
@@ -227,6 +255,9 @@ const App = {
   },
 
   async exportData() {
+    if (db.isServerOnline) {
+      await db.createLocalBackup();
+    }
     const data = await db.exportAll();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -236,7 +267,7 @@ const App = {
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    this.toast('Data exported successfully!', 'success');
+    this.toast('Backup file downloaded & saved to local database\\backups!', 'success');
   },
 
   async importData() {

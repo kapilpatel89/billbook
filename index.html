@@ -130,6 +130,8 @@
     <header class="topbar">
       <div class="topbar-title" id="topbar-page-title">🏠 Dashboard</div>
       <div class="topbar-actions">
+        <span class="storage-badge" id="storage-mode-badge" onclick="App.openBillsFolder()" style="cursor:pointer;font-size:11px;padding:4px 10px;border-radius:12px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.4);font-weight:600;display:inline-flex;align-items:center;gap:4px;" title="Click to view local bills folder in Windows Explorer">🟢 Local Disk DB</span>
+        <button class="btn btn-ghost btn-sm" title="Open Invoices Directory in Windows Explorer" onclick="App.openBillsFolder()">📂 Bills Folder</button>
         <span class="fy-badge" id="fy-badge">FY 25-26</span>
         <span class="text-sm text-muted" id="topbar-company-name">Loading...</span>
         <button class="btn btn-ghost btn-sm" title="Export Data" onclick="App.exportData()">💾 Backup</button>

@@ -1,101 +1,110 @@
-# 🏢 Pro Billbook — Indian GST Invoice & Business WebApp
+# 🏢 Pro Billbook — Indian GST Invoice & Business Software
+### 100% Offline Local Windows Installation | Local Disk File Database | No Online Database
 
-A fully offline-capable, Indian GST-compliant business invoice, billing, inventory, and accounting software built with pure HTML5, CSS3, and JavaScript, powered by IndexedDB.
+A complete, standalone, Indian GST-compliant billing, invoicing, inventory, and accounting system engineered specifically for **100% offline local execution on Windows**. All invoices, parties, items, and accounting ledgers are saved physically into local disk files and folders right on your machine (`database/` and `data/invoices/`).
 
 ---
 
-## 🌟 Key Features
+## ⚡ Windows Quick Start (1-Click)
 
-### 🏢 Company Setup & Configuration
-- **4-Step First-Run Wizard**: Business identity, Tax & GSTIN format validation, Bank/UPI details, and customizable invoice numbering rules.
-- Complete settings manager for updating terms, bank details, and business profile anytime.
+### Option 1: Run Installer (First Time Setup)
+Double-click `install.bat` in this folder:
+- Automatically verifies or helps you install Node.js runtime.
+- Creates all local database and bills folders (`database/`, `data/invoices/`, `data/parties/`).
+- Configures full local read/write permissions via Windows `icacls`.
+- Creates a **"Pro Billbook GST"** shortcut directly on your Windows Desktop.
 
-### 🧾 Full GST Invoicing Engine
-- **Intrastate vs Interstate Auto-Detection**: Automatically computes CGST + SGST (Intrastate) or IGST (Interstate) based on Party state vs Company state.
-- **Dynamic Line Items**: Real-time tax calculation, discount %, Cess, HSN code search, UOMs, and automatic round-off.
-- **Indian Currency in Words**: Automatic conversion (Rupees, Lakhs, Crores, and Paise).
+### Option 2: 1-Click Daily Run
+Double-click `start.bat` (or `run.bat` or the Desktop Shortcut):
+- Starts the local file database server.
+- Automatically launches your default web browser at `http://localhost:3000/`.
+- All changes are immediately written to your local disk.
 
-### 🛒 Purchase Entry & Inventory Management
-- Record supplier bills with GSTIN & tax details.
-- Automatically increments inventory stock levels and logs stock movements (`IN`/`OUT`).
-- Real-time stock status, low-stock warnings, and reorder levels.
+---
 
-### 👥 Party Management & Ledger
-- Customers & Suppliers management with 15-character GSTIN validator.
-- Full party ledger with running debit/credit balance and transaction history.
-- **Share via WhatsApp**: Send instant ledger balances and statements to parties.
-- Daily transaction **Day Book** with date range filtering.
+## 💾 Local File Database Architecture (No Online Database)
 
-### 📋 GSTR NIC-Compatible JSON Generators
-- **GSTR-1 JSON**: Outward supplies formatted into B2B, B2CL, B2CS, Exports, HSN Summary, and Nil-rated tables for direct GST portal upload.
-- **GSTR-3B JSON**: Monthly summary containing outward taxable supplies, interstate unregistered sales, and Input Tax Credit (ITC).
-- **GSTR-9 JSON**: Annual return summary for the entire financial year.
+Unlike cloud apps, **Pro Billbook does not use any online or external database**. Everything resides inside your local project directory:
+
+```
+e:\Pro Billbook\
+├── database\                     # Core Local Database Files (JSON Format)
+│   ├── company.json              # Business identity, GSTIN, bank & settings
+│   ├── parties.json              # Customer & supplier directory with balances
+│   ├── items.json                # Stock inventory, prices & HSN codes
+│   ├── invoices.json             # All sales invoices & bills master
+│   ├── purchases.json            # Inward purchase bills master
+│   ├── payments.json             # Receipts & payment vouchers
+│   ├── ledger.json               # Full double-entry financial ledger
+│   ├── sequences.json            # Auto-increment invoice & voucher sequences
+│   └── backups\                  # Automatic timestamped database snapshots
+│
+├── data\                         # Physical Document Folders
+│   ├── invoices\                 # Individual invoice JSON files (e.g. PE_2526_0001.json)
+│   ├── parties\                  # Individual party statement files
+│   ├── purchases\                # Individual purchase bill records
+│   └── exports\                  # GSTR-1, GSTR-3B, GSTR-9 JSON exports
+│
+├── install.bat                   # 1-Click Windows Setup & Prerequisites Installer
+├── start.bat                     # 1-Click Launcher (starts server + opens browser)
+├── setup.bat                     # Folder & permissions configuration utility
+└── server.js                     # High-performance local file database engine
+```
+
+### 📂 Direct Windows Explorer Integration
+Click the **"📂 Bills Folder"** or **"🟢 Local Disk: database\"** badge in the top navigation bar at any time to open your physical bills folder directly in Windows File Explorer!
+
+---
+
+## 🌟 Comprehensive Features
+
+### 🏢 Business Identity & GST Setup
+- **4-Step Setup Wizard**: Legal trade name, GSTIN validator, State code mapping, Bank/UPI details, and customizable invoice numbering prefix.
+- Multi-financial year support (`FY 25-26`).
+
+### 🧾 Indian GST Invoicing Engine
+- **Intrastate vs Interstate Auto-Calculation**:
+  - Intrastate (Same State) -> `CGST` + `SGST`
+  - Interstate (Different State) -> `IGST`
+- Dynamic line items with HSN search, unit of measure, discount %, cess, and automatic round-off.
+- Automatic Indian currency conversion to words (*Rupees, Lakhs, Crores, and Paise*).
+
+### 🛒 Purchase Entries & Inventory Control
+- Record inward supplier invoices with GST breakdown.
+- Real-time stock movement ledger (`IN` / `OUT`) with reorder alerts.
+
+### 👥 Party Management & WhatsApp Ledger
+- Dedicated party directory with 15-digit GSTIN validation.
+- Live outstanding balance calculation.
+- Instant **WhatsApp Ledger Share** for customer statements.
+- Complete financial Day Book.
+
+### 📋 GSTR NIC Portal JSON Generators
+- **GSTR-1 JSON**: B2B, B2CL, B2CS, Exports, and HSN summary tables for direct upload to `gst.gov.in`.
+- **GSTR-3B JSON**: Monthly summary containing outward taxable supplies and Input Tax Credit (ITC).
+- **GSTR-9 JSON**: Annual return consolidated summary.
 
 ### ⚡ E-Invoice & 🚚 E-Way Bill
-- **E-Invoice (IRP Schema v1.1)**: 64-character IRN hash generation, dynamic QR Code, acknowledgement number & date tracking.
-- **E-Way Bill**: JSON generator with transporter GSTIN, vehicle number, distance (KM), and transport modes (Road, Rail, Air, Ship).
+- **E-Invoice (IRP Schema v1.1)**: IRN hash generator, QR code, and acknowledgement tracking.
+- **E-Way Bill**: Part-A & Part-B JSON with transporter GSTIN, vehicle number, distance (KM), and transport mode.
 
-### 🖨️ Complete Print Center
-- **3-Page Tax Invoice**:
+### 🖨️ Complete 3-Copy Print Center
+- Professional A4 Tax Invoice with 3 standard copies:
   - `ORIGINAL FOR BUYER`
   - `DUPLICATE FOR TRANSPORTER`
   - `TRIPLICATE FOR SUPPLIER`
-- E-Invoice QR Code & IRN block embedded in invoice print.
-- E-Way Bill attached document print.
-- Party Ledger statement print (A4).
-- Stock inventory sheet print (A4 Landscape).
-- Payment receipt print (A5).
-
-### 🔒 100% Offline & Private
-- Client-side data storage using **IndexedDB**.
-- Bundled offline `qrcode.min.js` library.
-- JSON-based **Backup & Restore** feature.
+- Embedded offline QR Code and IRN block.
+- Party Ledger A4 print.
+- Inventory stock sheet print (A4 Landscape).
+- Payment vouchers & receipts (A5).
 
 ---
 
-## 📁 Project Structure
-
-```
-├── index.html          # Main SPA shell & UI pages
-├── style.css           # Complete CSS design system & print styles
-├── app.js              # Application controller, router & utilities
-├── db.js               # IndexedDB database layer
-├── server.js           # Lightweight static server
-├── assets/
-│   └── qrcode.min.js   # Offline QR code generator
-├── data/
-│   └── hsn_data.js     # Preloaded HSN/SAC master database & Indian states
-└── modules/
-    ├── company.js      # Setup wizard & settings
-    ├── parties.js      # Party management & WhatsApp ledger sharing
-    ├── items.js        # Stock management & HSN master
-    ├── sales.js        # GST Sales Invoices & Purchase Entries
-    ├── payments.js     # Payments & ledger day book
-    ├── gstr.js         # GSTR-1, 3B, 9, E-Invoice & E-Way Bill JSON engines
-    └── print.js        # Print templates (3-copy invoice, ledger, receipts)
-```
-
----
-
-## 🚀 Quick Start
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/kapilpatel89/billbook.git
-   cd billbook
-   ```
-
-2. Start the local server:
-   ```bash
-   node server.js
-   ```
-
-3. Open in your browser:
-   ```
-   http://localhost:3000/
-   ```
+## 🔒 Complete Offline Privacy
+- Zero tracking, zero telemetry, zero cloud dependencies.
+- Dual-engine storage: High-speed local browser cache (IndexedDB) synchronized in real-time with physical Windows JSON files on disk.
 
 ---
 
 ## 📄 License
-MIT License
+MIT License - Free for commercial and personal business use.
