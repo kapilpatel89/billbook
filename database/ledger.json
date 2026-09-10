@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "partyId": 1,
+    "date": "2026-09-10",
+    "type": "SALES_INVOICE",
+    "refId": 1,
+    "refNo": "PE/2526/0001",
+    "narration": "Sales Invoice PE/2526/0001",
+    "amount": 5600,
+    "side": "DR",
+    "createdAt": "2026-09-10T16:02:10.723Z",
+    "id": 1,
+    "updatedAt": "2026-09-10T16:02:10.725Z"
+  }
+]
