@@ -6,7 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const BASE_DIR = __dirname;
@@ -221,7 +221,7 @@ async function handleSoftwareUpdate(req, res) {
 
   try {
     steps.push('Creating safety backup of database before code update...');
-    const bkp = backupDatabase();
+    const bkp = createBackup();
     steps.push(`Backup verified: ${bkp.masterFile}`);
 
     let hasGit = false;
