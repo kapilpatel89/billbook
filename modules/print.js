@@ -38,6 +38,18 @@ const PrintModule = {
     // Date formatting helper for Tally style (DD-Mon-YYYY)
     const formatTallyDate = (dStr) => {
       if (!dStr) return '';
+      if (typeof dStr === 'string' && dStr.includes('-')) {
+        const parts = dStr.split('T')[0].split('-');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const d = parseInt(parts[2], 10);
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d) && months[m]) {
+            return `${String(d).padStart(2, '0')}-${months[m]}-${y}`;
+          }
+        }
+      }
       const d = new Date(dStr);
       if (isNaN(d.getTime())) return dStr;
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

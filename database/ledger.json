@@ -24,5 +24,17 @@
     "createdAt": "2026-09-11T01:59:03.244Z",
     "id": 2,
     "updatedAt": "2026-09-11T01:59:03.246Z"
+  },
+  {
+    "partyId": 1,
+    "date": "2026-09-11",
+    "type": "RECEIPT",
+    "refNo": "gdfgdfgf",
+    "narration": "fgfgfdgdfgfg",
+    "amount": 2950,
+    "side": "CR",
+    "createdAt": "2026-09-11T02:07:22.342Z",
+    "id": 3,
+    "updatedAt": "2026-09-11T02:07:22.350Z"
   }
 ]

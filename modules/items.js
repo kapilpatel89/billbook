@@ -59,8 +59,10 @@ const ItemsModule = {
 
   showAddModal(prefill = {}) {
     document.getElementById('item-modal-title').textContent = prefill.id ? '✏️ Edit Item' : '➕ Add New Item/Service';
-    const uomOpts = UOM_LIST.map(u => `<option value="${u.code}" ${prefill.unit === u.code ? 'selected' : ''}>${u.code} - ${u.name}</option>`).join('');
-    const gstOpts = GST_RATES.map(r => `<option value="${r}" ${parseFloat(prefill.gstRate) === r ? 'selected' : ''}>${r}%</option>`).join('');
+    const uomList = (typeof UOM_LIST !== 'undefined') ? UOM_LIST : [{ code: 'NOS', name: 'Numbers' }, { code: 'PCS', name: 'Pieces' }, { code: 'KGS', name: 'Kilograms' }];
+    const gstRates = (typeof GST_RATES !== 'undefined') ? GST_RATES : [0, 5, 12, 18, 28];
+    const uomOpts = uomList.map(u => `<option value="${u.code}" ${prefill.unit === u.code ? 'selected' : ''}>${u.code} - ${u.name}</option>`).join('');
+    const gstOpts = gstRates.map(r => `<option value="${r}" ${parseFloat(prefill.gstRate) === r ? 'selected' : ''}>${r}%</option>`).join('');
     document.getElementById('item-modal-body').innerHTML = `
       <div class="form-row-2">
         <div class="form-group">
@@ -260,9 +262,10 @@ const ItemsModule = {
 const HSNModule = {
   async render() {
     const hsn = await db.getAll('hsn');
-    const search = document.getElementById('hsn-search')?.value?.toLowerCase() || '';
+    const search = (document.getElementById('hsn-search')?.value || '').trim().toLowerCase();
     const shown = search ? hsn.filter(h =>
-      h.hsn.includes(search) || (h.desc || '').toLowerCase().includes(search)
+      String(h.hsn || '').toLowerCase().includes(search) ||
+      String(h.desc || '').toLowerCase().includes(search)
     ) : hsn;
     const tbody = document.getElementById('hsn-list-body');
     if (!tbody) return;
@@ -270,22 +273,26 @@ const HSNModule = {
       tbody.innerHTML = `<tr><td colspan="5"><div class="table-empty"><div class="empty-icon">🏷️</div>No HSN codes found.</div></td></tr>`;
       return;
     }
-    tbody.innerHTML = shown.map(h => `<tr>
-      <td><span class="gstin-display" style="font-size:0.8rem">${h.hsn}</span></td>
-      <td>${h.desc}</td>
-      <td><span class="badge badge-primary">${h.gst}%</span></td>
-      <td><span class="badge badge-secondary">${h.type === 'service' ? '🔧 SAC' : '📦 HSN'}</span></td>
-      <td>
-        <div class="actions">
-          <button class="btn btn-sm btn-secondary" onclick="HSNModule.edit(${h.id})" title="Edit">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="HSNModule.delete(${h.id})" title="Delete">🗑️</button>
-        </div>
-      </td>
-    </tr>`).join('');
+    tbody.innerHTML = shown.map(h => {
+      const keyId = (h.id !== undefined && h.id !== null) ? String(h.id) : String(h.hsn || '');
+      return `<tr>
+        <td><span class="gstin-display" style="font-size:0.8rem">${h.hsn}</span></td>
+        <td>${h.desc}</td>
+        <td><span class="badge badge-primary">${h.gst}%</span></td>
+        <td><span class="badge badge-secondary">${h.type === 'service' ? '🔧 SAC' : '📦 HSN'}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-sm btn-secondary" onclick="HSNModule.edit('${keyId}')" title="Edit">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="HSNModule.delete('${keyId}')" title="Delete">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
   },
 
   showAddModal(prefill = {}) {
-    const gstOpts = GST_RATES.map(r => `<option value="${r}" ${parseFloat(prefill.gst) === r ? 'selected' : ''}>${r}%</option>`).join('');
+    const gstRates = (typeof GST_RATES !== 'undefined') ? GST_RATES : [0, 5, 12, 18, 28];
+    const gstOpts = gstRates.map(r => `<option value="${r}" ${parseFloat(prefill.gst) === r ? 'selected' : ''}>${r}%</option>`).join('');
     document.getElementById('hsn-modal-body').innerHTML = `
       <div class="form-row-2">
         <div class="form-group">
@@ -323,25 +330,51 @@ const HSNModule = {
       gst: parseFloat(document.getElementById('hm-gst').value) || 0,
       type: document.getElementById('hm-type').value,
     };
+
     if (this._prefill?.id) {
       await db.put('hsn', { ...this._prefill, ...data });
-      App.toast('HSN updated!', 'success');
+      App.toast('HSN updated successfully!', 'success');
     } else {
-      await db.add('hsn', data);
-      App.toast('HSN code added!', 'success');
+      // Check if code already exists
+      const all = await db.getAll('hsn');
+      const existing = all.find(h => String(h.hsn).trim() === code);
+      if (existing) {
+        await db.put('hsn', { ...existing, ...data });
+        App.toast('HSN code updated!', 'success');
+      } else {
+        await db.add('hsn', data);
+        App.toast('HSN code added successfully!', 'success');
+      }
     }
     App.closeModal('hsn-modal');
+    this._prefill = null;
     await this.render();
   },
 
-  async edit(id) {
-    const h = await db.get('hsn', id);
+  async edit(idOrCode) {
+    let h = null;
+    if (idOrCode) {
+      h = await db.get('hsn', idOrCode);
+    }
+    if (!h) {
+      const all = await db.getAll('hsn');
+      h = all.find(item => String(item.id) === String(idOrCode) || String(item.hsn) === String(idOrCode));
+    }
     if (h) this.showAddModal(h);
   },
 
-  async delete(id) {
+  async delete(idOrCode) {
     if (!confirm('Delete this HSN code?')) return;
-    await db.delete('hsn', id);
+    let target = null;
+    if (idOrCode) {
+      target = await db.get('hsn', idOrCode);
+    }
+    if (!target) {
+      const all = await db.getAll('hsn');
+      target = all.find(item => String(item.id) === String(idOrCode) || String(item.hsn) === String(idOrCode));
+    }
+    const key = target?.id || idOrCode;
+    await db.delete('hsn', key);
     App.toast('HSN deleted', 'info');
     await this.render();
   }

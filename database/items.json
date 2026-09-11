@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "type": "goods",
+    "name": "Teak",
+    "description": "Teak wood cut size",
+    "hsn": "44100",
+    "gstRate": 18,
+    "unit": "SQM",
+    "cess": 0,
+    "purchasePrice": 0,
+    "salePrice": 4800,
+    "stock": 0,
+    "reorderLevel": 0,
+    "maxStock": 0,
+    "active": true,
+    "updatedAt": "2026-09-11T02:21:57.495Z",
+    "createdAt": "2026-09-11T02:21:57.103Z",
+    "id": 1
+  }
+]

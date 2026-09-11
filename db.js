@@ -87,7 +87,15 @@ class BillbookDB {
             const items = await res.json();
             if (Array.isArray(items) && items.length > 0) {
               for (const item of items) {
-                await this._idbPut(store, item);
+                try {
+                  if (item && item.id !== undefined) {
+                    await this._idbPut(store, item);
+                  } else {
+                    await this._idbAdd(store, item);
+                  }
+                } catch (_) {
+                  // Individual item error should not halt syncing remaining items or stores
+                }
               }
             }
           }
@@ -217,7 +225,7 @@ class BillbookDB {
 
   // Unified CRUD: Saves to local disk files AND mirrors to IndexedDB
   async add(store, data) {
-    let saved = data;
+    let saved = { ...data };
     if (this.isServerOnline) {
       try {
         const res = await fetch(`/api/${store}`, {
@@ -234,19 +242,27 @@ class BillbookDB {
     }
     // Update local IDB cache
     try {
-      await this._idbPut(store, saved);
+      if (saved.id !== undefined) {
+        await this._idbPut(store, saved);
+      } else {
+        const newId = await this._idbAdd(store, saved);
+        if (newId) saved.id = newId;
+      }
     } catch (_) {
-      try { await this._idbAdd(store, saved); } catch (_) {}
+      try {
+        const newId = await this._idbAdd(store, saved);
+        if (newId) saved.id = newId;
+      } catch (_) {}
     }
     return saved.id || saved;
   }
 
   async put(store, data) {
-    let saved = data;
-    const key = data.id || data.key || (store === 'company' ? 1 : null);
+    let saved = { ...data };
+    const key = data.id || data.key || (store === 'company' ? 1 : (store === 'hsn' ? data.hsn : null));
     if (this.isServerOnline && key !== null) {
       try {
-        const res = await fetch(`/api/${store}/${key}`, {
+        const res = await fetch(`/api/${store}/${encodeURIComponent(key)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -258,7 +274,15 @@ class BillbookDB {
         console.warn(`[Local Server] put ${store} fallback to IDB:`, err);
       }
     }
-    await this._idbPut(store, saved);
+    try {
+      if (saved.id !== undefined) {
+        await this._idbPut(store, saved);
+      } else {
+        await this._idbAdd(store, saved);
+      }
+    } catch (_) {
+      try { await this._idbAdd(store, saved); } catch (_) {}
+    }
     return saved;
   }
 
@@ -304,12 +328,21 @@ class BillbookDB {
   async delete(store, key) {
     if (this.isServerOnline) {
       try {
-        await fetch(`/api/${store}/${key}`, { method: 'DELETE' });
+        await fetch(`/api/${store}/${encodeURIComponent(key)}`, { method: 'DELETE' });
       } catch (err) {
         console.warn(`[Local Server] delete ${store} error:`, err);
       }
     }
-    return this._idbDelete(store, key);
+    try {
+      return await this._idbDelete(store, key);
+    } catch (_) {
+      // If key wasn't numeric ID, search matching record in IDB
+      try {
+        const all = await this._idbGetAll(store);
+        const match = all.find(i => String(i.id) === String(key) || String(i.hsn) === String(key));
+        if (match?.id) return await this._idbDelete(store, match.id);
+      } catch (_) {}
+    }
   }
 
   async clear(store) {
@@ -495,7 +528,13 @@ class BillbookDB {
     }
     const tx = this.db.transaction('hsn', 'readwrite');
     const store = tx.objectStore('hsn');
-    for (const h of hsnData) store.add(h);
+    for (const h of hsnData) {
+      if (h.id !== undefined) {
+        store.put(h);
+      } else {
+        store.add(h);
+      }
+    }
     return new Promise((resolve, reject) => {
       tx.oncomplete = resolve;
       tx.onerror = reject;

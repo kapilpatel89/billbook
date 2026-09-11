@@ -2,6 +2,15 @@
 // Pro Billbook - Sales Invoice Module (Full GST)
 // ============================================================
 
+function getLocalDateString(d = new Date()) {
+  const dt = (d instanceof Date && !isNaN(d.getTime())) ? d : new Date();
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+if (typeof window !== 'undefined') window.getLocalDateString = getLocalDateString;
+
 const SalesModule = {
   currentInvoice: null,
   lineItems: [],
@@ -55,13 +64,13 @@ const SalesModule = {
     this.lineItems = [this.emptyLine()];
     this.selectedParty = null;
     const invNo = await this.generateInvoiceNo();
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const co = App.company;
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + parseInt(co?.paymentTerms || 30));
     document.getElementById('inv-no').value = invNo;
     document.getElementById('inv-date').value = today;
-    document.getElementById('inv-due').value = dueDate.toISOString().split('T')[0];
+    document.getElementById('inv-due').value = getLocalDateString(dueDate);
     document.getElementById('inv-party-name').value = '';
     document.getElementById('inv-party-gstin').textContent = '-';
     document.getElementById('inv-party-state').textContent = '-';
@@ -86,7 +95,7 @@ const SalesModule = {
     this.lineItems = JSON.parse(JSON.stringify(inv.items || []));
     this.selectedParty = inv.partyId ? await db.get('parties', inv.partyId) : null;
     document.getElementById('inv-no').value = inv.invoiceNo;
-    document.getElementById('inv-date').value = inv.date;
+    document.getElementById('inv-date').value = inv.date || getLocalDateString();
     document.getElementById('inv-due').value = inv.dueDate || '';
     document.getElementById('inv-party-name').value = inv.partyName || '';
     document.getElementById('inv-party-gstin').textContent = inv.partyGSTIN || '-';
@@ -105,14 +114,33 @@ const SalesModule = {
     App.navigate('invoice-form');
   },
 
+  onDateChange() {
+    const invDateVal = document.getElementById('inv-date')?.value;
+    if (invDateVal) {
+      const co = App.company;
+      const terms = parseInt(co?.paymentTerms || 30);
+      const parts = invDateVal.split('-').map(Number);
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        const dueDate = new Date(parts[0], parts[1] - 1, parts[2] + terms);
+        const dueEl = document.getElementById('inv-due');
+        if (dueEl) {
+          dueEl.value = getLocalDateString(dueDate);
+        }
+      }
+    }
+    this.calculateTotals();
+  },
+
   emptyLine() {
     return { itemId: null, name: '', hsn: '', desc: '', qty: 1, unit: 'NOS', rate: 0, discPct: 0, gstRate: 18, cess: 0, amount: 0, taxable: 0, cgst: 0, sgst: 0, igst: 0, cessAmt: 0 };
   },
 
   renderLineItems() {
     const container = document.getElementById('inv-items-body');
-    const uomOpts = UOM_LIST.map(u => `<option value="${u.code}">${u.code}</option>`).join('');
-    const gstOpts = GST_RATES.map(r => `<option value="${r}">${r}%</option>`).join('');
+    const uomList = (typeof UOM_LIST !== 'undefined') ? UOM_LIST : [{ code: 'NOS', name: 'Numbers' }, { code: 'PCS', name: 'Pieces' }, { code: 'KGS', name: 'Kilograms' }];
+    const gstRates = (typeof GST_RATES !== 'undefined') ? GST_RATES : [0, 5, 12, 18, 28];
+    const uomOpts = uomList.map(u => `<option value="${u.code}">${u.code}</option>`).join('');
+    const gstOpts = gstRates.map(r => `<option value="${r}">${r}%</option>`).join('');
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr id="line-${i}">
         <td style="min-width:30px;text-align:center;color:var(--text-muted)">${i + 1}</td>
@@ -393,8 +421,8 @@ const SalesModule = {
 
     const data = {
       invoiceNo,
-      date: document.getElementById('inv-date').value,
-      dueDate: document.getElementById('inv-due').value,
+      date: document.getElementById('inv-date')?.value || getLocalDateString(),
+      dueDate: document.getElementById('inv-due')?.value || '',
       partyId: this.selectedParty?.id || null,
       partyName,
       partyGSTIN: this.selectedParty?.gstin || '',
@@ -529,7 +557,7 @@ const PurchaseModule = {
     this.currentPurchase = null;
     this.lineItems = [this.emptyLine()];
     this.selectedParty = null;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     document.getElementById('pur-billno').value = '';
     document.getElementById('pur-date').value = today;
     document.getElementById('pur-supplier-name').value = '';
@@ -546,8 +574,10 @@ const PurchaseModule = {
   renderLineItems() {
     const container = document.getElementById('pur-items-body');
     if (!container) return;
-    const uomOpts = UOM_LIST.map(u => `<option value="${u.code}">${u.code}</option>`).join('');
-    const gstOpts = GST_RATES.map(r => `<option value="${r}">${r}%</option>`).join('');
+    const uomList = (typeof UOM_LIST !== 'undefined') ? UOM_LIST : [{ code: 'NOS', name: 'Numbers' }, { code: 'PCS', name: 'Pieces' }, { code: 'KGS', name: 'Kilograms' }];
+    const gstRates = (typeof GST_RATES !== 'undefined') ? GST_RATES : [0, 5, 12, 18, 28];
+    const uomOpts = uomList.map(u => `<option value="${u.code}">${u.code}</option>`).join('');
+    const gstOpts = gstRates.map(r => `<option value="${r}">${r}%</option>`).join('');
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr>
         <td>${i + 1}</td>
@@ -650,7 +680,7 @@ const PurchaseModule = {
 
     const data = {
       billNo,
-      date: document.getElementById('pur-date').value,
+      date: document.getElementById('pur-date')?.value || getLocalDateString(),
       partyId: this.selectedParty?.id || null,
       partyName,
       partyGSTIN: this.selectedParty?.gstin || '',

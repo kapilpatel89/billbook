@@ -307,7 +307,11 @@ async function handleApi(req, res, urlPath) {
     // GET single item
     if (method === 'GET' && id) {
       const items = readStore(resource);
-      const item = Array.isArray(items) ? items.find(i => String(i.id) === String(id) || String(i.key) === String(id)) : null;
+      const item = Array.isArray(items) ? items.find(i =>
+        String(i.id) === String(id) ||
+        String(i.key) === String(id) ||
+        (resource === 'hsn' && String(i.hsn) === String(id))
+      ) : null;
       if (!item) return sendJson(res, 404, { error: 'Not found' });
       return sendJson(res, 200, item);
     }
@@ -318,28 +322,40 @@ async function handleApi(req, res, urlPath) {
       let items = readStore(resource);
       if (!Array.isArray(items)) items = [];
 
-      // Generate ID if missing
-      if (!body.id) {
-        const maxId = items.reduce((max, cur) => Math.max(max, Number(cur.id) || 0), 0);
-        body.id = maxId + 1;
+      // Check if item already exists
+      let existingIdx = -1;
+      if (resource === 'hsn' && body.hsn) {
+        existingIdx = items.findIndex(i => String(i.hsn).trim() === String(body.hsn).trim());
       }
-      body.updatedAt = new Date().toISOString();
+      if (existingIdx === -1 && body.id) {
+        existingIdx = items.findIndex(i => String(i.id) === String(body.id));
+      }
 
-      // Check if item already exists by id
-      const existingIdx = items.findIndex(i => String(i.id) === String(body.id));
       if (existingIdx >= 0) {
-        items[existingIdx] = { ...items[existingIdx], ...body };
+        items[existingIdx] = {
+          ...items[existingIdx],
+          ...body,
+          id: items[existingIdx].id || body.id,
+          updatedAt: new Date().toISOString()
+        };
+        body.id = items[existingIdx].id;
       } else {
+        // Generate ID if missing
+        if (!body.id) {
+          const maxId = items.reduce((max, cur) => Math.max(max, Number(cur.id) || 0), 0);
+          body.id = maxId + 1;
+        }
+        body.updatedAt = new Date().toISOString();
         items.push(body);
       }
 
       writeStore(resource, items);
 
       // Save individual physical files for bills & parties
-      if (resource === 'invoices') saveIndividualInvoiceFile(body);
-      if (resource === 'parties') saveIndividualPartyFile(body);
+      if (resource === 'invoices') saveIndividualInvoiceFile(items[existingIdx] || body);
+      if (resource === 'parties') saveIndividualPartyFile(items[existingIdx] || body);
 
-      return sendJson(res, 200, body);
+      return sendJson(res, 200, items[existingIdx] || body);
     }
 
     // PUT update
@@ -349,13 +365,17 @@ async function handleApi(req, res, urlPath) {
       if (!Array.isArray(items)) items = [];
 
       const targetId = id || body.id;
-      const idx = items.findIndex(i => String(i.id) === String(targetId) || String(i.key) === String(targetId));
+      const idx = items.findIndex(i =>
+        String(i.id) === String(targetId) ||
+        String(i.key) === String(targetId) ||
+        (resource === 'hsn' && (String(i.hsn) === String(targetId) || (body.hsn && String(i.hsn) === String(body.hsn))))
+      );
       if (idx === -1) {
         // Upsert
         body.id = targetId;
         items.push(body);
       } else {
-        items[idx] = { ...items[idx], ...body, updatedAt: new Date().toISOString() };
+        items[idx] = { ...items[idx], ...body, id: items[idx].id || targetId, updatedAt: new Date().toISOString() };
       }
 
       writeStore(resource, items);
@@ -370,7 +390,11 @@ async function handleApi(req, res, urlPath) {
     if (method === 'DELETE' && id) {
       let items = readStore(resource);
       if (Array.isArray(items)) {
-        items = items.filter(i => String(i.id) !== String(id) && String(i.key) !== String(id));
+        items = items.filter(i =>
+          String(i.id) !== String(id) &&
+          String(i.key) !== String(id) &&
+          !(resource === 'hsn' && String(i.hsn) === String(id))
+        );
         writeStore(resource, items);
       }
       return sendJson(res, 200, { success: true, id });

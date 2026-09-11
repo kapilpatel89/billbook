@@ -328,7 +328,8 @@
                 </div>
                 <div class="form-group">
                   <label>Invoice Date <span class="req">*</span></label>
-                  <input class="form-control" id="inv-date" type="date" onchange="SalesModule.calculateTotals()">
+                  <input class="form-control" id="inv-date" type="date" onchange="SalesModule.onDateChange()">
+                  <small style="color:var(--text-muted);font-size:0.7rem;display:block;margin-top:2px;">Defaults to today &bull; Freely changeable</small>
                 </div>
                 <div class="form-group">
                   <label>Due Date</label>

@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "type": "receipt",
+    "date": "2026-09-11",
+    "partyId": 1,
+    "partyName": "Surat Textiles Ltd",
+    "amount": 2950,
+    "mode": "bank",
+    "refNo": "gdfgdfgf",
+    "chequeNo": "",
+    "chequeDate": "",
+    "chequeBank": "",
+    "narration": "fgfgfdgdfgfg",
+    "invoiceId": 2,
+    "createdAt": "2026-09-11T02:07:22.012Z",
+    "id": 1,
+    "updatedAt": "2026-09-11T02:07:22.333Z"
+  }
+]

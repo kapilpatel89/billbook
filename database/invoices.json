@@ -49,7 +49,7 @@
     "id": 1
   },
   {
-    "invoiceNo": "PE/2526/0005",
+    "invoiceNo": "102",
     "date": "2026-09-11",
     "dueDate": "2026-10-11",
     "partyId": 1,
@@ -98,7 +98,30 @@
     "status": "confirmed",
     "fyear": "2526",
     "createdAt": "2026-09-11T01:59:03.125Z",
-    "updatedAt": "2026-09-11T01:59:03.134Z",
+    "updatedAt": "2026-09-11T02:06:56.094Z",
     "id": 2
+  },
+  {
+    "invoiceNo": "PE/2526/0007",
+    "date": "2026-09-08",
+    "dueDate": "2026-10-08",
+    "partyName": "Patel Trading Co",
+    "items": [
+      {
+        "name": "Dell Latitude Laptop",
+        "hsn": "847130",
+        "qty": 2,
+        "rate": 45000,
+        "gstRate": 18,
+        "taxable": 90000,
+        "cgst": 8100,
+        "sgst": 8100,
+        "amount": 106200
+      }
+    ],
+    "grandTotal": 106200,
+    "status": "confirmed",
+    "id": 3,
+    "updatedAt": "2026-09-11T02:34:05.345Z"
   }
 ]

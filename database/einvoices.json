@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "invoiceId": 2,
+    "irn": "01c8f7f924aaac1234a151022026091129500000000000000000000000000000",
+    "ackNo": "178909262848",
+    "ackDt": "2026-09-11 02:10:28",
+    "payload": "{\"Version\":\"1.1\",\"TranDtls\":{\"TaxSch\":\"GST\",\"SupTyp\":\"B2B\",\"RegRev\":\"N\",\"EcmGstin\":null,\"IgstOnIntra\":\"N\"},\"DocDtls\":{\"Typ\":\"INV\",\"No\":\"102\",\"Dt\":\"11/09/2026\"},\"SellerDtls\":{\"Gstin\":\"24AAACP1234A1Z5\",\"LglNm\":\"Patel Enterprises\",\"Addr1\":\"fsdfdsf\",\"Loc\":\"\",\"Pin\":0,\"Stcd\":\"11\",\"Ph\":\"9876543210\",\"Em\":\"\"},\"BuyerDtls\":{\"Gstin\":\"URP\",\"LglNm\":\"Surat Textiles Ltd\",\"Pos\":\"01\",\"Addr1\":\"\",\"Loc\":\"\",\"Pin\":0,\"Stcd\":\"01\",\"Ph\":\"\",\"Em\":\"\"},\"ItemList\":[{\"SlNo\":\"1\",\"PrdDesc\":\"Cotton Shirting\",\"IsServc\":\"N\",\"HsnCd\":\"\",\"Barcde\":null,\"Qty\":10,\"FreeQty\":0,\"Unit\":\"NOS\",\"UnitPrice\":250,\"TotAmt\":2500,\"Discount\":0,\"PreTaxVal\":0,\"AssAmt\":2500,\"GstRt\":18,\"IgstAmt\":450,\"CgstAmt\":0,\"SgstAmt\":0,\"CesRt\":0,\"CesAmt\":0,\"CesNonAdvlAmt\":0,\"StateCesRt\":0,\"StateCesAmt\":0,\"StateCesNonAdvlAmt\":0,\"OthChrg\":0,\"TotItemVal\":2950}],\"ValDtls\":{\"AssVal\":2500,\"CgstVal\":0,\"SgstVal\":0,\"IgstVal\":450,\"CesVal\":0,\"StCesVal\":0,\"Discount\":0,\"OthChrg\":0,\"RndOffAmt\":0,\"TotInvVal\":2950,\"TotInvValFc\":0},\"PayDtls\":{\"Nm\":\"Surat Textiles Ltd\",\"Accdet\":\"66656616161611661\",\"Mode\":\"Credit\",\"Fibbic\":\"SBIN0001234\",\"Payterm\":\"30\",\"Payin\":0,\"CrDay\":0,\"Dirdr\":0},\"RefDtls\":{\"InvRm\":\"\",\"PrecDocDtls\":[],\"TransDtls\":[]},\"EwbDtls\":null,\"IRN\":\"01c8f7f924aaac1234a151022026091129500000000000000000000000000000\",\"AckNo\":\"178909262848\",\"AckDt\":\"2026-09-11 02:10:28\",\"Status\":\"ACT\"}",
+    "createdAt": "2026-09-11T02:10:28.491Z",
+    "id": 1,
+    "updatedAt": "2026-09-11T02:10:28.492Z"
+  }
+]
