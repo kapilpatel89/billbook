@@ -440,6 +440,33 @@ const CompanyModule = {
           </div>
         </div>
       </div>
+      <div class="card" style="margin-top:20px; border:1px solid #c7d2fe; background:linear-gradient(180deg, #f8faff 0%, #ffffff 100%);">
+        <div class="card-header">
+          <div>
+            <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <span>🔄 Software Update & Bug Fixes</span>
+              <span class="badge" style="background:#e0e7ff; color:#3730a3; font-weight:600; font-size:11px;">GitHub Auto-Updater</span>
+            </div>
+            <div style="font-size:12px; color:#6b7280; margin-top:3px;">
+              Pull latest enhancements and bug fixes directly from GitHub repository. <strong>Your database, parties, and bills will never be touched or lost.</strong>
+            </div>
+          </div>
+          <button class="btn btn-sm" style="background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; font-weight:600; box-shadow:0 2px 4px rgba(79,70,229,0.3);" onclick="App.showUpdateModal()">
+            <i class="bi bi-cloud-arrow-down-fill"></i> Check & Update Code Now
+          </button>
+        </div>
+        <div style="padding:16px 20px; font-size:13px; color:#475569; display:flex; gap:24px; flex-wrap:wrap;">
+          <div>
+            <strong>Repository:</strong> <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">kapilpatel89/billbook</code>
+          </div>
+          <div>
+            <strong>Safety Guarantee:</strong> <span style="color:#059669; font-weight:600;"><i class="bi bi-shield-check"></i> Database & JSON files protected</span>
+          </div>
+          <div>
+            <strong>Live Version:</strong> <span style="color:#2563eb; font-weight:600;">v1.2.0 (Latest Tally Invoice + Master Integration)</span>
+          </div>
+        </div>
+      </div>
     `;
   },
 

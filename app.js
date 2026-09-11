@@ -291,6 +291,111 @@ const App = {
     };
     input.click();
   },
+
+  showUpdateModal() {
+    const overlay = document.getElementById('update-modal-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      const term = document.getElementById('update-log-terminal');
+      if (term) term.textContent = 'Press "🚀 Start Update" below to sync code files from GitHub.\nYour database and JSON files will be 100% kept intact.';
+      const bar = document.getElementById('update-progress-bar');
+      if (bar) bar.style.width = '0%';
+      const pct = document.getElementById('update-status-pct');
+      if (pct) pct.textContent = '0%';
+      const status = document.getElementById('update-status-text');
+      if (status) status.textContent = 'Ready to check for latest code updates';
+      const btnRun = document.getElementById('btn-update-run');
+      if (btnRun) { btnRun.style.display = ''; btnRun.disabled = false; btnRun.innerHTML = '🚀 Start Update'; }
+      const btnReload = document.getElementById('btn-update-reload');
+      if (btnReload) btnReload.style.display = 'none';
+      const btnCancel = document.getElementById('btn-update-cancel');
+      if (btnCancel) btnCancel.style.display = '';
+    }
+  },
+
+  hideUpdateModal() {
+    const overlay = document.getElementById('update-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+  },
+
+  async executeSoftwareUpdate() {
+    const term = document.getElementById('update-log-terminal');
+    const bar = document.getElementById('update-progress-bar');
+    const pct = document.getElementById('update-status-pct');
+    const status = document.getElementById('update-status-text');
+    const btnRun = document.getElementById('btn-update-run');
+    const btnReload = document.getElementById('btn-update-reload');
+    const btnCancel = document.getElementById('btn-update-cancel');
+
+    if (btnRun) { btnRun.disabled = true; btnRun.innerHTML = '⏳ Updating...'; }
+    if (btnCancel) btnCancel.style.display = 'none';
+    if (status) status.textContent = 'Connecting to GitHub repository...';
+    if (bar) bar.style.width = '20%';
+    if (pct) pct.textContent = '20%';
+
+    const appendLog = (msg) => {
+      if (term) {
+        term.textContent += (term.textContent ? '\n' : '') + msg;
+        term.scrollTop = term.scrollHeight;
+      }
+    };
+
+    appendLog('----------------------------------------------------');
+    appendLog(`[${new Date().toLocaleTimeString()}] Initiating GitHub code sync...`);
+    appendLog('Target repo: https://github.com/kapilpatel89/billbook.git (branch: main)');
+    appendLog('Guarantee: Database and data JSON files will NOT be touched.');
+
+    try {
+      if (bar) bar.style.width = '40%';
+      if (pct) pct.textContent = '40%';
+      if (status) status.textContent = 'Downloading code updates...';
+
+      const resp = await fetch('/api/update-from-github', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`Server returned HTTP ${resp.status}: ${errText}`);
+      }
+
+      const result = await resp.json();
+      if (bar) bar.style.width = '80%';
+      if (pct) pct.textContent = '80%';
+
+      if (result.steps && Array.isArray(result.steps)) {
+        for (const step of result.steps) {
+          appendLog('→ ' + step);
+        }
+      }
+
+      if (result.filesUpdated && result.filesUpdated.length) {
+        appendLog(`✓ Updated ${result.filesUpdated.length} code files successfully.`);
+      }
+
+      if (result.success) {
+        if (bar) bar.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+        if (status) status.textContent = 'Update completed successfully!';
+        appendLog(`[${new Date().toLocaleTimeString()}] 🎉 Software update complete!`);
+        appendLog('Please reload the app to run the updated code.');
+        if (btnRun) btnRun.style.display = 'none';
+        if (btnReload) btnReload.style.display = '';
+        this.toast('Software updated successfully from GitHub!', 'success');
+      } else {
+        throw new Error(result.message || 'Unknown update failure');
+      }
+    } catch (err) {
+      console.error('Update error:', err);
+      appendLog(`❌ ERROR: ${err.message || err}`);
+      if (status) status.textContent = 'Update failed';
+      if (bar) bar.style.background = '#ef4444';
+      if (btnRun) { btnRun.disabled = false; btnRun.innerHTML = 'Retry Update'; }
+      if (btnCancel) btnCancel.style.display = '';
+      this.toast('Software update failed: ' + (err.message || err), 'error');
+    }
+  },
 };
 
 // Start the app

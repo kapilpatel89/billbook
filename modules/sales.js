@@ -132,7 +132,7 @@ const SalesModule = {
   },
 
   emptyLine() {
-    return { itemId: null, name: '', hsn: '', desc: '', qty: 1, unit: 'NOS', rate: 0, discPct: 0, gstRate: 18, cess: 0, amount: 0, taxable: 0, cgst: 0, sgst: 0, igst: 0, cessAmt: 0 };
+    return { itemId: null, name: '', hsn: '', desc: '', description: '', qty: 1, unit: 'NOS', rate: 0, discPct: 0, gstRate: 18, cess: 0, amount: 0, taxable: 0, cgst: 0, sgst: 0, igst: 0, cessAmt: 0 };
   },
 
   renderLineItems() {
@@ -144,10 +144,16 @@ const SalesModule = {
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr id="line-${i}">
         <td style="min-width:30px;text-align:center;color:var(--text-muted)">${i + 1}</td>
-        <td style="min-width:200px" class="autocomplete-wrap">
+        <td style="min-width:210px" class="autocomplete-wrap">
           <input class="form-control" placeholder="Item name..." value="${item.name||''}"
             oninput="SalesModule.searchItem(this.value,${i})" id="item-name-${i}" autocomplete="off">
           <div class="autocomplete-dropdown" id="item-drop-${i}"></div>
+          <input class="form-control form-control-sm" placeholder="Item description / details..."
+            value="${item.desc || item.description || ''}"
+            id="item-desc-${i}"
+            oninput="SalesModule.updateLine(${i})"
+            style="margin-top:4px;font-size:0.75rem;padding:3px 6px;height:24px;border-color:var(--border);border-style:dashed;"
+            title="Item Description (auto-filled from item master, freely changeable in this invoice)">
         </td>
         <td style="min-width:90px"><input class="form-control" id="item-hsn-${i}" value="${item.hsn||''}" placeholder="HSN" oninput="SalesModule.updateLine(${i})"></td>
         <td style="min-width:60px"><input class="form-control" id="item-qty-${i}" type="number" step="0.001" value="${item.qty||1}" min="0.001" oninput="SalesModule.updateLine(${i})"></td>
@@ -168,29 +174,63 @@ const SalesModule = {
     if (!query || query.length < 1) { drop.classList.remove('open'); return; }
     const results = await ItemsModule.searchItems(query);
     if (!results.length) { drop.classList.remove('open'); return; }
-    drop.innerHTML = results.map(i => `
-      <div class="autocomplete-item" onclick="SalesModule.selectItem(${lineIdx}, ${JSON.stringify(JSON.stringify(i))})">
-        <span class="hsn-code">${i.name}</span>
-        <span class="hsn-desc">HSN: ${i.hsn} | ₹${i.salePrice}</span>
-        <span class="hsn-rate">${i.gstRate}% GST</span>
-      </div>`).join('');
+    drop.innerHTML = results.map(i => {
+      const descSnippet = i.description ? `<div style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;">${i.description}</div>` : '';
+      return `
+      <div class="autocomplete-item" onmousedown="SalesModule.selectItemById(${lineIdx}, ${i.id})" onclick="SalesModule.selectItemById(${lineIdx}, ${i.id})">
+        <div style="font-weight:600;color:var(--text-primary);">${i.name}</div>
+        ${descSnippet}
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">
+          <span>HSN: ${i.hsn || '-'}</span>
+          <span>₹${(i.salePrice || 0).toLocaleString('en-IN', {minimumFractionDigits:2})}</span>
+          <span class="badge badge-primary" style="font-size:0.65rem">${i.gstRate || 0}% GST</span>
+        </div>
+      </div>`;
+    }).join('');
     drop.classList.add('open');
   },
 
-  selectItem(lineIdx, itemJson) {
-    const item = JSON.parse(itemJson);
+  async selectItemById(lineIdx, itemId) {
+    const all = await db.getAll('items');
+    const item = all.find(x => String(x.id) === String(itemId));
+    if (item) {
+      this.selectItem(lineIdx, item);
+    }
+  },
+
+  selectItem(lineIdx, itemOrJson) {
+    let item = itemOrJson;
+    if (typeof itemOrJson === 'string') {
+      try { item = JSON.parse(itemOrJson); } catch (e) { console.error(e); return; }
+    }
+    if (!item) return;
+    const itemDesc = item.description || item.desc || '';
     this.lineItems[lineIdx] = {
       ...this.lineItems[lineIdx],
-      itemId: item.id, name: item.name, hsn: item.hsn,
-      unit: item.unit || 'NOS', rate: item.salePrice || 0,
-      gstRate: item.gstRate || 0, cess: item.cess || 0,
+      itemId: item.id,
+      name: item.name,
+      desc: itemDesc,
+      description: itemDesc,
+      hsn: item.hsn || '',
+      unit: item.unit || 'NOS',
+      rate: item.salePrice || 0,
+      gstRate: item.gstRate || 0,
+      cess: item.cess || 0,
     };
-    document.getElementById(`item-name-${lineIdx}`).value = item.name;
-    document.getElementById(`item-hsn-${lineIdx}`).value = item.hsn;
-    document.getElementById(`item-rate-${lineIdx}`).value = item.salePrice || 0;
-    document.getElementById(`item-gst-${lineIdx}`).value = item.gstRate || 0;
-    document.getElementById(`item-unit-${lineIdx}`).value = item.unit || 'NOS';
-    document.getElementById(`item-drop-${lineIdx}`).classList.remove('open');
+    const nameEl = document.getElementById(`item-name-${lineIdx}`);
+    if (nameEl) nameEl.value = item.name;
+    const descEl = document.getElementById(`item-desc-${lineIdx}`);
+    if (descEl) descEl.value = itemDesc;
+    const hsnEl = document.getElementById(`item-hsn-${lineIdx}`);
+    if (hsnEl) hsnEl.value = item.hsn || '';
+    const rateEl = document.getElementById(`item-rate-${lineIdx}`);
+    if (rateEl) rateEl.value = item.salePrice || 0;
+    const gstEl = document.getElementById(`item-gst-${lineIdx}`);
+    if (gstEl) gstEl.value = item.gstRate || 0;
+    const unitEl = document.getElementById(`item-unit-${lineIdx}`);
+    if (unitEl) unitEl.value = item.unit || 'NOS';
+    const drop = document.getElementById(`item-drop-${lineIdx}`);
+    if (drop) drop.classList.remove('open');
     this.updateLine(lineIdx);
   },
 
@@ -199,6 +239,8 @@ const SalesModule = {
     const rate = parseFloat(document.getElementById(`item-rate-${i}`)?.value) || 0;
     const disc = parseFloat(document.getElementById(`item-disc-${i}`)?.value) || 0;
     const gst = parseFloat(document.getElementById(`item-gst-${i}`)?.value) || 0;
+    const desc = document.getElementById(`item-desc-${i}`)?.value || '';
+    const unit = document.getElementById(`item-unit-${i}`)?.value || 'NOS';
     const gross = qty * rate;
     const discAmt = gross * disc / 100;
     const taxable = gross - discAmt;
@@ -212,7 +254,10 @@ const SalesModule = {
     this.lineItems[i] = {
       ...this.lineItems[i],
       name: document.getElementById(`item-name-${i}`)?.value || '',
+      desc,
+      description: desc,
       hsn: document.getElementById(`item-hsn-${i}`)?.value || '',
+      unit,
       qty, rate, discPct: disc, gstRate: gst,
       taxable, cgst, sgst, igst,
       amount: total,
@@ -568,7 +613,7 @@ const PurchaseModule = {
   },
 
   emptyLine() {
-    return { itemId: null, name: '', hsn: '', qty: 1, unit: 'NOS', rate: 0, gstRate: 18, taxable: 0, cgst: 0, sgst: 0, igst: 0, amount: 0 };
+    return { itemId: null, name: '', desc: '', description: '', hsn: '', qty: 1, unit: 'NOS', rate: 0, gstRate: 18, taxable: 0, cgst: 0, sgst: 0, igst: 0, amount: 0 };
   },
 
   renderLineItems() {
@@ -585,12 +630,18 @@ const PurchaseModule = {
           <input class="form-control" value="${item.name||''}" placeholder="Item/Service..." id="pur-item-${i}"
             oninput="PurchaseModule.searchItem(this.value,${i})" autocomplete="off">
           <div class="autocomplete-dropdown" id="pur-drop-${i}"></div>
+          <input class="form-control form-control-sm" placeholder="Item description / details..."
+            value="${item.desc || item.description || ''}"
+            id="pur-desc-${i}"
+            oninput="PurchaseModule.updateLine(${i})"
+            style="margin-top:4px;font-size:0.75rem;padding:3px 6px;height:24px;border-color:var(--border);border-style:dashed;"
+            title="Item Description (auto-filled from item master, freely changeable in this purchase)">
         </td>
-        <td><input class="form-control" id="pur-hsn-${i}" value="${item.hsn||''}" placeholder="HSN"></td>
+        <td><input class="form-control" id="pur-hsn-${i}" value="${item.hsn||''}" placeholder="HSN" oninput="PurchaseModule.updateLine(${i})"></td>
         <td><input class="form-control" id="pur-qty-${i}" type="number" step="0.001" value="${item.qty}" oninput="PurchaseModule.updateLine(${i})"></td>
-        <td><select class="form-control" id="pur-unit-${i}">${uomOpts}</select></td>
+        <td><select class="form-control" id="pur-unit-${i}" onchange="PurchaseModule.updateLine(${i})">${uomOpts.replace(`value="${item.unit||'NOS'}"`, `value="${item.unit||'NOS'}" selected`)}</select></td>
         <td><input class="form-control" id="pur-rate-${i}" type="number" step="0.01" value="${item.rate}" oninput="PurchaseModule.updateLine(${i})"></td>
-        <td><select class="form-control" id="pur-gst-${i}" onchange="PurchaseModule.updateLine(${i})">${gstOpts}</select></td>
+        <td><select class="form-control" id="pur-gst-${i}" onchange="PurchaseModule.updateLine(${i})">${gstOpts.replace(`value="${item.gstRate}"`, `value="${item.gstRate}" selected`)}</select></td>
         <td class="text-right" id="pur-taxable-${i}">₹${(item.taxable||0).toFixed(2)}</td>
         <td class="text-right font-bold" id="pur-total-${i}">₹${(item.amount||0).toFixed(2)}</td>
         <td><span class="remove-row" onclick="PurchaseModule.removeLine(${i})">✕</span></td>
@@ -601,26 +652,63 @@ const PurchaseModule = {
     const drop = document.getElementById(`pur-drop-${idx}`);
     if (!query) { drop.classList.remove('open'); return; }
     const results = await ItemsModule.searchItems(query);
-    drop.innerHTML = results.map(i => `
-      <div class="autocomplete-item" onclick="PurchaseModule.selectItem(${idx},${JSON.stringify(JSON.stringify(i))})">
-        <span class="hsn-code">${i.name}</span>
-        <span class="hsn-desc">HSN:${i.hsn} ₹${i.purchasePrice}</span>
-        <span class="hsn-rate">${i.gstRate}%</span>
-      </div>`).join('');
+    drop.innerHTML = results.map(i => {
+      const descSnippet = i.description ? `<div style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;">${i.description}</div>` : '';
+      return `
+      <div class="autocomplete-item" onmousedown="PurchaseModule.selectItemById(${idx}, ${i.id})" onclick="PurchaseModule.selectItemById(${idx}, ${i.id})">
+        <div style="font-weight:600;color:var(--text-primary);">${i.name}</div>
+        ${descSnippet}
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">
+          <span>HSN: ${i.hsn || '-'}</span>
+          <span>₹${(i.purchasePrice || i.salePrice || 0).toLocaleString('en-IN', {minimumFractionDigits:2})}</span>
+          <span class="badge badge-primary" style="font-size:0.65rem">${i.gstRate || 0}% GST</span>
+        </div>
+      </div>`;
+    }).join('');
     drop.classList.add(results.length ? 'open' : '');
     if (!results.length) drop.classList.remove('open');
   },
 
-  selectItem(idx, json) {
-    const item = JSON.parse(json);
-    document.getElementById(`pur-item-${idx}`).value = item.name;
-    document.getElementById(`pur-hsn-${idx}`).value = item.hsn;
-    document.getElementById(`pur-rate-${idx}`).value = item.purchasePrice || 0;
-    document.getElementById(`pur-gst-${idx}`).value = item.gstRate || 0;
-    document.getElementById(`pur-unit-${idx}`).value = item.unit || 'NOS';
-    document.getElementById(`pur-drop-${idx}`).classList.remove('open');
-    this.lineItems[idx].itemId = item.id;
-    this.lineItems[idx].name = item.name;
+  async selectItemById(idx, itemId) {
+    const all = await db.getAll('items');
+    const item = all.find(x => String(x.id) === String(itemId));
+    if (item) {
+      this.selectItem(idx, item);
+    }
+  },
+
+  selectItem(idx, itemOrJson) {
+    let item = itemOrJson;
+    if (typeof itemOrJson === 'string') {
+      try { item = JSON.parse(itemOrJson); } catch (e) { console.error(e); return; }
+    }
+    if (!item) return;
+    const itemDesc = item.description || item.desc || '';
+    const itemEl = document.getElementById(`pur-item-${idx}`);
+    if (itemEl) itemEl.value = item.name;
+    const descEl = document.getElementById(`pur-desc-${idx}`);
+    if (descEl) descEl.value = itemDesc;
+    const hsnEl = document.getElementById(`pur-hsn-${idx}`);
+    if (hsnEl) hsnEl.value = item.hsn || '';
+    const rateEl = document.getElementById(`pur-rate-${idx}`);
+    if (rateEl) rateEl.value = item.purchasePrice || item.salePrice || 0;
+    const gstEl = document.getElementById(`pur-gst-${idx}`);
+    if (gstEl) gstEl.value = item.gstRate || 0;
+    const unitEl = document.getElementById(`pur-unit-${idx}`);
+    if (unitEl) unitEl.value = item.unit || 'NOS';
+    const drop = document.getElementById(`pur-drop-${idx}`);
+    if (drop) drop.classList.remove('open');
+    this.lineItems[idx] = {
+      ...this.lineItems[idx],
+      itemId: item.id,
+      name: item.name,
+      desc: itemDesc,
+      description: itemDesc,
+      hsn: item.hsn || '',
+      unit: item.unit || 'NOS',
+      rate: item.purchasePrice || item.salePrice || 0,
+      gstRate: item.gstRate || 0
+    };
     this.updateLine(idx);
   },
 
@@ -628,13 +716,18 @@ const PurchaseModule = {
     const qty = parseFloat(document.getElementById(`pur-qty-${i}`)?.value) || 0;
     const rate = parseFloat(document.getElementById(`pur-rate-${i}`)?.value) || 0;
     const gst = parseFloat(document.getElementById(`pur-gst-${i}`)?.value) || 0;
+    const desc = document.getElementById(`pur-desc-${i}`)?.value || '';
+    const unit = document.getElementById(`pur-unit-${i}`)?.value || 'NOS';
     const taxable = qty * rate;
     const gstAmt = taxable * gst / 100;
     const isIGST = (this.selectedParty?.state || '') !== (App.company?.state || '');
     this.lineItems[i] = {
       ...this.lineItems[i],
       name: document.getElementById(`pur-item-${i}`)?.value || '',
+      desc,
+      description: desc,
       hsn: document.getElementById(`pur-hsn-${i}`)?.value || '',
+      unit,
       qty, rate, gstRate: gst, taxable,
       cgst: isIGST ? 0 : gstAmt / 2,
       sgst: isIGST ? 0 : gstAmt / 2,
