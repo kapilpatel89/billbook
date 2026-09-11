@@ -190,13 +190,86 @@ const App = {
       }
     });
 
-    // Keyboard: Escape to close modal
+    // Global Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
+      const activePage = this.currentPage || '';
+      const keyUpper = (e.key || '').toUpperCase();
+
+      // Escape: close modals & dropdowns
       if (e.key === 'Escape') {
+        this.hideShortcutsModal();
+        this.hideUpdateModal();
         document.querySelectorAll('.modal-overlay.open').forEach(o => {
           const modalId = o.id.replace('-overlay', '');
           this.closeModal(modalId);
         });
+        document.querySelectorAll('.autocomplete-dropdown.open').forEach(d => {
+          d.classList.remove('open');
+        });
+        return;
+      }
+
+      // F1: Open Keyboard Shortcuts Cheat Sheet
+      if (e.key === 'F1') {
+        e.preventDefault();
+        this.showShortcutsModal();
+        return;
+      }
+
+      // Alt + A: Add Line Item
+      if (e.altKey && (keyUpper === 'A' || e.code === 'KeyA')) {
+        e.preventDefault();
+        if (activePage === 'invoice-form') {
+          SalesModule.addLine();
+        } else if (activePage === 'purchase-form') {
+          PurchaseModule.addLine();
+        } else {
+          SalesModule.newInvoice();
+        }
+        return;
+      }
+
+      // Ctrl + S or Alt + S: Save Invoice / Purchase
+      if ((e.ctrlKey || e.altKey) && (keyUpper === 'S' || e.code === 'KeyS')) {
+        if (activePage === 'invoice-form') {
+          e.preventDefault();
+          SalesModule.saveInvoice();
+          return;
+        } else if (activePage === 'purchase-form') {
+          e.preventDefault();
+          PurchaseModule.savePurchase();
+          return;
+        }
+      }
+
+      // Alt + N: New Sales Invoice
+      if (e.altKey && (keyUpper === 'N' || e.code === 'KeyN')) {
+        e.preventDefault();
+        SalesModule.newInvoice();
+        return;
+      }
+
+      // Alt + P: Print Invoice
+      if (e.altKey && (keyUpper === 'P' || e.code === 'KeyP')) {
+        if (activePage === 'invoice-form' || activePage === 'sales') {
+          e.preventDefault();
+          SalesModule.printInvoice();
+          return;
+        }
+      }
+
+      // Alt + D: Dashboard
+      if (e.altKey && (keyUpper === 'D' || e.code === 'KeyD')) {
+        e.preventDefault();
+        this.navigate('dashboard');
+        return;
+      }
+
+      // Alt + I: Items Catalog
+      if (e.altKey && (keyUpper === 'I' || e.code === 'KeyI')) {
+        e.preventDefault();
+        this.navigate('items');
+        return;
       }
     });
   },
@@ -315,6 +388,16 @@ const App = {
 
   hideUpdateModal() {
     const overlay = document.getElementById('update-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+  },
+
+  showShortcutsModal() {
+    const overlay = document.getElementById('shortcuts-modal-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  },
+
+  hideShortcutsModal() {
+    const overlay = document.getElementById('shortcuts-modal-overlay');
     if (overlay) overlay.style.display = 'none';
   },
 

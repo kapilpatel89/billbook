@@ -481,33 +481,63 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .table-empty .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
 
+/* Hide native browser up/down number spin arrows across entire application */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
 /* Invoice Line Items Table */
 .items-table-wrap { overflow-x: auto; overflow-y: visible; margin: 12px 0; min-height: 250px; }
 .items-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 .items-table th {
   background: var(--bg-secondary);
-  padding: 8px 10px;
+  padding: 8px 8px;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
 }
-.items-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+.items-table td { padding: 5px 6px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
 .items-table td input, .items-table td select {
   width: 100%; background: var(--bg-input);
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  padding: 5px 7px;
-  font-size: 0.82rem;
+  padding: 6px 8px;
+  font-size: 0.84rem;
   outline: none;
+  transition: var(--transition);
+  box-sizing: border-box;
 }
-.items-table td input:focus, .items-table td select:focus { border-color: var(--color-primary); }
-.items-table td input[type="number"] { text-align: right; }
-.items-table .remove-row { color: var(--color-danger); cursor: pointer; opacity: 0.6; transition: var(--transition); font-size: 1rem; }
-.items-table .remove-row:hover { opacity: 1; }
+.items-table td input:focus, .items-table td select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow);
+  background: var(--bg-card);
+}
+.items-table td input[type="number"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+.items-table td select {
+  cursor: pointer;
+  padding: 6px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.items-table .remove-row { color: var(--color-danger); cursor: pointer; opacity: 0.6; transition: var(--transition); font-size: 1rem; text-align: center; display: block; }
+.items-table .remove-row:hover { opacity: 1; transform: scale(1.15); }
 
 /* Badges */
 .badge {
@@ -936,3 +966,48 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .alert-warning { background: var(--color-warning-bg); border: 1px solid rgba(245,158,11,0.3); color: var(--color-warning); }
 .alert-success { background: var(--color-success-bg); border: 1px solid rgba(16,185,129,0.3); color: var(--color-success); }
 .alert-danger { background: var(--color-danger-bg); border: 1px solid rgba(239,68,68,0.3); color: var(--color-danger); }
+
+/* Keyboard Shortcuts & Badges */
+kbd.kbd-key {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+.btn kbd.kbd-key {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+  border-bottom-width: 1px;
+}
+.btn-secondary kbd.kbd-key, .btn-ghost kbd.kbd-key {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.shortcuts-table tr {
+  border-bottom: 1px solid var(--border-color);
+}
+.shortcuts-table td {
+  padding: 8px 10px;
+  font-size: 0.84rem;
+}
+.shortcuts-table td:first-child {
+  width: 150px;
+  font-weight: 600;
+}
+

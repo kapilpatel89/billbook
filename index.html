@@ -131,6 +131,7 @@
       <div class="topbar-title" id="topbar-page-title">🏠 Dashboard</div>
       <div class="topbar-actions">
         <button class="btn btn-sm" id="topbar-btn-update" onclick="App.showUpdateModal()" style="background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; font-weight:600; font-size:12px; display:inline-flex; align-items:center; gap:6px; border:none; box-shadow:0 2px 4px rgba(79,70,229,0.3); border-radius:6px; padding:4px 10px;" title="Update software from GitHub without touching database">🔄 Update Code</button>
+        <button class="btn btn-ghost btn-sm" id="topbar-btn-shortcuts" onclick="App.showShortcutsModal()" title="View Keyboard Shortcuts (Press F1)" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;">⌨️ Keys <kbd class="kbd-key" style="font-size:10px;padding:1px 4px;">F1</kbd></button>
         <span class="storage-badge" id="storage-mode-badge" onclick="App.openBillsFolder()" style="cursor:pointer;font-size:11px;padding:4px 10px;border-radius:12px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.4);font-weight:600;display:inline-flex;align-items:center;gap:4px;" title="Click to view local bills folder in Windows Explorer">🟢 Local Disk DB</span>
         <button class="btn btn-ghost btn-sm" title="Open Invoices Directory in Windows Explorer" onclick="App.openBillsFolder()">📂 Bills Folder</button>
         <span class="fy-badge" id="fy-badge">FY 25-26</span>
@@ -419,20 +420,41 @@
             <div class="card" style="margin-bottom:14px">
               <div class="card-header">
                 <div class="card-title">📦 Items</div>
-                <button class="btn btn-sm btn-primary" onclick="SalesModule.addLine()">+ Add Item</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="SalesModule.addLine()" title="Add Item (Alt+A)">+ Add Item <kbd class="kbd-key" style="margin-left:4px">Alt+A</kbd></button>
               </div>
               <div class="items-table-wrap">
                 <table class="items-table">
                   <thead>
                     <tr>
-                      <th>#</th><th>Item / Description</th><th>HSN</th>
-                      <th>Qty</th><th>Unit</th><th>Rate (₹)</th><th>Disc%</th>
-                      <th>GST%</th><th>Taxable</th><th>GST Amt</th><th>Total</th><th></th>
+                      <th style="width:35px;text-align:center">#</th>
+                      <th style="min-width:240px">Item / Description</th>
+                      <th style="width:115px;min-width:115px;text-align:center">HSN / SAC</th>
+                      <th style="width:75px;min-width:75px;text-align:right">Qty</th>
+                      <th style="width:100px;min-width:100px">Unit</th>
+                      <th style="width:115px;min-width:115px;text-align:right">Rate (₹)</th>
+                      <th style="width:70px;min-width:70px;text-align:right">Disc%</th>
+                      <th style="width:85px;min-width:85px">GST%</th>
+                      <th style="min-width:95px;text-align:right">Taxable</th>
+                      <th style="min-width:85px;text-align:right">GST Amt</th>
+                      <th style="min-width:105px;text-align:right">Total</th>
+                      <th style="width:35px"></th>
                     </tr>
                   </thead>
                   <tbody id="inv-items-body"></tbody>
                 </table>
               </div>
+
+              <!-- + Add Item Action Bar (Right below line items, before GST breakup) -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0 16px 0; padding:8px 0; border-top:1px dashed var(--border-color);">
+                <button type="button" class="btn btn-primary" onclick="SalesModule.addLine()" id="btn-add-item-sales-bottom" style="display:inline-flex; align-items:center; gap:8px; font-weight:600; padding:8px 18px; box-shadow:0 2px 5px rgba(59,130,246,0.3);">
+                  <span>➕ Add Item</span>
+                  <kbd class="kbd-key">Alt + A</kbd>
+                </button>
+                <span class="text-xs text-muted" style="display:inline-flex; align-items:center; gap:6px;">
+                  💡 Shortcuts: <kbd class="kbd-key">Alt + A</kbd> Add Item &nbsp;|&nbsp; <kbd class="kbd-key">Ctrl + S</kbd> Save Invoice &nbsp;|&nbsp; <kbd class="kbd-key">F1</kbd> All Keys
+                </span>
+              </div>
+
               <!-- GST Breakup -->
               <div style="margin-top:10px">
                 <div class="text-xs text-muted font-semibold" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">GST-wise Breakup</div>
@@ -538,14 +560,39 @@
             </div>
           </div>
           <div class="card-header" style="margin-top:10px"><div class="card-title">📦 Items Received</div>
-            <button class="btn btn-sm btn-primary" onclick="PurchaseModule.addLine()">+ Add Item</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="PurchaseModule.addLine()" title="Add Item (Alt+A)">+ Add Item <kbd class="kbd-key" style="margin-left:4px">Alt+A</kbd></button>
           </div>
           <div class="items-table-wrap">
             <table class="items-table">
-              <thead><tr><th>#</th><th>Item</th><th>HSN</th><th>Qty</th><th>Unit</th><th>Rate</th><th>GST%</th><th>Taxable</th><th>Total</th><th></th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width:35px;text-align:center">#</th>
+                  <th style="min-width:240px">Item / Description</th>
+                  <th style="width:115px;min-width:115px;text-align:center">HSN / SAC</th>
+                  <th style="width:75px;min-width:75px;text-align:right">Qty</th>
+                  <th style="width:100px;min-width:100px">Unit</th>
+                  <th style="width:115px;min-width:115px;text-align:right">Rate (₹)</th>
+                  <th style="width:85px;min-width:85px">GST%</th>
+                  <th style="min-width:95px;text-align:right">Taxable</th>
+                  <th style="min-width:105px;text-align:right">Total</th>
+                  <th style="width:35px"></th>
+                </tr>
+              </thead>
               <tbody id="pur-items-body"></tbody>
             </table>
           </div>
+
+          <!-- + Add Item Action Bar for Purchases -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0 16px 0; padding:8px 0; border-top:1px dashed var(--border-color);">
+            <button type="button" class="btn btn-primary" onclick="PurchaseModule.addLine()" id="btn-add-item-pur-bottom" style="display:inline-flex; align-items:center; gap:8px; font-weight:600; padding:8px 18px; box-shadow:0 2px 5px rgba(59,130,246,0.3);">
+              <span>➕ Add Item</span>
+              <kbd class="kbd-key">Alt + A</kbd>
+            </button>
+            <span class="text-xs text-muted" style="display:inline-flex; align-items:center; gap:6px;">
+              💡 Shortcuts: <kbd class="kbd-key">Alt + A</kbd> Add Item &nbsp;|&nbsp; <kbd class="kbd-key">Ctrl + S</kbd> Save Purchase
+            </span>
+          </div>
+
           <div style="display:flex;justify-content:flex-end;margin-top:12px">
             <div class="invoice-totals" style="min-width:250px">
               <div class="total-row"><span>Taxable</span><span id="pur-tot-taxable">₹0.00</span></div>
@@ -1069,6 +1116,70 @@
       <button class="btn btn-success btn-sm" id="btn-update-reload" onclick="location.reload()" style="display:none; font-weight:600;">
         🔄 Reload App Now
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Modal Overlay -->
+<div id="shortcuts-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.75); backdrop-filter:blur(4px); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; width:92%; max-width:560px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.5); overflow:hidden; animation:modalFadeIn 0.2s ease-out;">
+    <div style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:var(--bg-secondary);">
+      <div style="font-weight:700; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+        <span>⌨️</span> <span>Keyboard Shortcuts Cheat Sheet</span>
+      </div>
+      <button onclick="App.hideShortcutsModal()" style="background:none; border:none; font-size:1.2rem; color:var(--text-muted); cursor:pointer; padding:2px 6px;">✕</button>
+    </div>
+    <div style="padding:16px 20px; max-height:70vh; overflow-y:auto;">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700; margin-bottom:8px;">Invoicing & Line Items</div>
+      <table class="shortcuts-table" style="margin-bottom:16px;">
+        <tr>
+          <td><kbd class="kbd-key">Alt + A</kbd></td>
+          <td><strong>Add New Item Row</strong> & focus item search box</td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Ctrl + S</kbd> / <kbd class="kbd-key">Alt + S</kbd></td>
+          <td><strong>Save Invoice</strong> (Sales or Purchase)</td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Alt + N</kbd></td>
+          <td><strong>New Sales Invoice</strong></td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Alt + P</kbd></td>
+          <td><strong>Print / Preview</strong> current invoice</td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">↓</kbd> / <kbd class="kbd-key">↑</kbd></td>
+          <td><strong>Navigate suggestions</strong> in item / party dropdown</td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Enter</kbd></td>
+          <td><strong>Select suggestion</strong> & auto-populate details</td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Esc</kbd></td>
+          <td><strong>Close suggestions</strong> or active dialog modal</td>
+        </tr>
+      </table>
+
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700; margin-bottom:8px;">Quick Navigation</div>
+      <table class="shortcuts-table">
+        <tr>
+          <td><kbd class="kbd-key">Alt + D</kbd></td>
+          <td>Go to <strong>Dashboard</strong></td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">Alt + I</kbd></td>
+          <td>Open <strong>Items Catalog</strong></td>
+        </tr>
+        <tr>
+          <td><kbd class="kbd-key">F1</kbd></td>
+          <td>Show this <strong>Keyboard Shortcuts</strong> guide</td>
+        </tr>
+      </table>
+    </div>
+    <div style="padding:12px 20px; background:var(--bg-secondary); border-top:1px solid var(--border-color); display:flex; justify-content:flex-end;">
+      <button class="btn btn-primary btn-sm" onclick="App.hideShortcutsModal()">Got It (Esc)</button>
     </div>
   </div>
 </div>

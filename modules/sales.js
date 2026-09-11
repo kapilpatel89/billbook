@@ -143,8 +143,8 @@ const SalesModule = {
     const gstOpts = gstRates.map(r => `<option value="${r}">${r}%</option>`).join('');
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr id="line-${i}">
-        <td style="min-width:30px;text-align:center;color:var(--text-muted)">${i + 1}</td>
-        <td style="min-width:220px; vertical-align:top;">
+        <td style="min-width:35px;width:35px;text-align:center;color:var(--text-muted)">${i + 1}</td>
+        <td style="min-width:240px; vertical-align:top;">
           <div class="autocomplete-wrap" style="position:relative; width:100%;">
             <input class="form-control" placeholder="Item name..." value="${item.name||''}"
               oninput="SalesModule.searchItem(this.value,${i})"
@@ -159,16 +159,16 @@ const SalesModule = {
             style="margin-top:4px;font-size:0.75rem;padding:3px 6px;height:24px;border-color:var(--border);border-style:dashed;"
             title="Item Description (auto-filled from item master, freely changeable in this invoice)">
         </td>
-        <td style="min-width:90px"><input class="form-control" id="item-hsn-${i}" value="${item.hsn||''}" placeholder="HSN" oninput="SalesModule.updateLine(${i})"></td>
-        <td style="min-width:60px"><input class="form-control" id="item-qty-${i}" type="number" step="0.001" value="${item.qty||1}" min="0.001" oninput="SalesModule.updateLine(${i})"></td>
-        <td style="min-width:70px"><select class="form-control" id="item-unit-${i}" onchange="SalesModule.updateLine(${i})">${uomOpts.replace(`value="${item.unit||'NOS'}"`, `value="${item.unit||'NOS'}" selected`)}</select></td>
-        <td style="min-width:90px"><input class="form-control" id="item-rate-${i}" type="number" step="0.01" value="${item.rate||0}" oninput="SalesModule.updateLine(${i})"></td>
-        <td style="min-width:70px"><input class="form-control" id="item-disc-${i}" type="number" step="0.01" value="${item.discPct||0}" min="0" max="100" oninput="SalesModule.updateLine(${i})"></td>
-        <td style="min-width:75px"><select class="form-control" id="item-gst-${i}" onchange="SalesModule.updateLine(${i})">${gstOpts.replace(`value="${item.gstRate}"`, `value="${item.gstRate}" selected`)}</select></td>
-        <td style="min-width:100px;text-align:right" id="item-taxable-${i}" class="font-semibold">₹${(item.taxable||0).toFixed(2)}</td>
-        <td style="min-width:90px;text-align:right" id="item-gstamt-${i}" class="text-muted">₹${((item.cgst||0)+(item.sgst||0)+(item.igst||0)).toFixed(2)}</td>
-        <td style="min-width:100px;text-align:right" id="item-total-${i}" class="font-bold text-primary">₹${(item.amount||0).toFixed(2)}</td>
-        <td><span class="remove-row" onclick="SalesModule.removeLine(${i})" title="Remove">✕</span></td>
+        <td style="min-width:115px; width:115px;"><input class="form-control" id="item-hsn-${i}" value="${item.hsn||''}" placeholder="HSN Code" oninput="SalesModule.updateLine(${i})" style="text-align:center; font-family:var(--font-mono); letter-spacing:0.5px;" title="HSN / SAC Code"></td>
+        <td style="min-width:75px; width:75px;"><input class="form-control" id="item-qty-${i}" type="number" step="0.001" value="${item.qty||1}" min="0.001" oninput="SalesModule.updateLine(${i})" style="text-align:right;"></td>
+        <td style="min-width:100px; width:100px;"><select class="form-control" id="item-unit-${i}" onchange="SalesModule.updateLine(${i})" style="font-weight:500;">${uomOpts.replace(`value="${item.unit||'NOS'}"`, `value="${item.unit||'NOS'}" selected`)}</select></td>
+        <td style="min-width:115px; width:115px;"><input class="form-control" id="item-rate-${i}" type="number" step="0.01" value="${item.rate||0}" oninput="SalesModule.updateLine(${i})" style="text-align:right; font-weight:600;" placeholder="0.00"></td>
+        <td style="min-width:70px; width:70px;"><input class="form-control" id="item-disc-${i}" type="number" step="0.01" value="${item.discPct||0}" min="0" max="100" oninput="SalesModule.updateLine(${i})" style="text-align:right;"></td>
+        <td style="min-width:85px; width:85px;"><select class="form-control" id="item-gst-${i}" onchange="SalesModule.updateLine(${i})">${gstOpts.replace(`value="${item.gstRate}"`, `value="${item.gstRate}" selected`)}</select></td>
+        <td style="min-width:95px;text-align:right" id="item-taxable-${i}" class="font-semibold">₹${(item.taxable||0).toFixed(2)}</td>
+        <td style="min-width:85px;text-align:right" id="item-gstamt-${i}" class="text-muted">₹${((item.cgst||0)+(item.sgst||0)+(item.igst||0)).toFixed(2)}</td>
+        <td style="min-width:105px;text-align:right" id="item-total-${i}" class="font-bold text-primary">₹${(item.amount||0).toFixed(2)}</td>
+        <td style="width:35px;text-align:center"><span class="remove-row" onclick="SalesModule.removeLine(${i})" title="Remove">✕</span></td>
       </tr>
     `).join('');
   },
@@ -364,6 +364,14 @@ const SalesModule = {
     this.lineItems.push(this.emptyLine());
     this.renderLineItems();
     this.calculateTotals();
+    const newIdx = this.lineItems.length - 1;
+    setTimeout(() => {
+      const el = document.getElementById(`item-name-${newIdx}`);
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
   },
 
   removeLine(i) {
@@ -704,8 +712,8 @@ const PurchaseModule = {
     const gstOpts = gstRates.map(r => `<option value="${r}">${r}%</option>`).join('');
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr>
-        <td>${i + 1}</td>
-        <td style="min-width:200px; vertical-align:top;">
+        <td style="min-width:35px;width:35px;text-align:center;color:var(--text-muted)">${i + 1}</td>
+        <td style="min-width:240px; vertical-align:top;">
           <div class="autocomplete-wrap" style="position:relative; width:100%;">
             <input class="form-control" value="${item.name||''}" placeholder="Item/Service..." id="pur-item-${i}"
               oninput="PurchaseModule.searchItem(this.value,${i})"
@@ -720,14 +728,14 @@ const PurchaseModule = {
             style="margin-top:4px;font-size:0.75rem;padding:3px 6px;height:24px;border-color:var(--border);border-style:dashed;"
             title="Item Description (auto-filled from item master, freely changeable in this purchase)">
         </td>
-        <td><input class="form-control" id="pur-hsn-${i}" value="${item.hsn||''}" placeholder="HSN" oninput="PurchaseModule.updateLine(${i})"></td>
-        <td><input class="form-control" id="pur-qty-${i}" type="number" step="0.001" value="${item.qty}" oninput="PurchaseModule.updateLine(${i})"></td>
-        <td><select class="form-control" id="pur-unit-${i}" onchange="PurchaseModule.updateLine(${i})">${uomOpts.replace(`value="${item.unit||'NOS'}"`, `value="${item.unit||'NOS'}" selected`)}</select></td>
-        <td><input class="form-control" id="pur-rate-${i}" type="number" step="0.01" value="${item.rate}" oninput="PurchaseModule.updateLine(${i})"></td>
-        <td><select class="form-control" id="pur-gst-${i}" onchange="PurchaseModule.updateLine(${i})">${gstOpts.replace(`value="${item.gstRate}"`, `value="${item.gstRate}" selected`)}</select></td>
-        <td class="text-right" id="pur-taxable-${i}">₹${(item.taxable||0).toFixed(2)}</td>
-        <td class="text-right font-bold" id="pur-total-${i}">₹${(item.amount||0).toFixed(2)}</td>
-        <td><span class="remove-row" onclick="PurchaseModule.removeLine(${i})">✕</span></td>
+        <td style="min-width:115px; width:115px;"><input class="form-control" id="pur-hsn-${i}" value="${item.hsn||''}" placeholder="HSN Code" oninput="PurchaseModule.updateLine(${i})" style="text-align:center; font-family:var(--font-mono); letter-spacing:0.5px;" title="HSN / SAC Code"></td>
+        <td style="min-width:75px; width:75px;"><input class="form-control" id="pur-qty-${i}" type="number" step="0.001" value="${item.qty}" oninput="PurchaseModule.updateLine(${i})" style="text-align:right;"></td>
+        <td style="min-width:100px; width:100px;"><select class="form-control" id="pur-unit-${i}" onchange="PurchaseModule.updateLine(${i})" style="font-weight:500;">${uomOpts.replace(`value="${item.unit||'NOS'}"`, `value="${item.unit||'NOS'}" selected`)}</select></td>
+        <td style="min-width:115px; width:115px;"><input class="form-control" id="pur-rate-${i}" type="number" step="0.01" value="${item.rate}" oninput="PurchaseModule.updateLine(${i})" style="text-align:right; font-weight:600;" placeholder="0.00"></td>
+        <td style="min-width:85px; width:85px;"><select class="form-control" id="pur-gst-${i}" onchange="PurchaseModule.updateLine(${i})">${gstOpts.replace(`value="${item.gstRate}"`, `value="${item.gstRate}" selected`)}</select></td>
+        <td class="text-right font-semibold" style="min-width:95px" id="pur-taxable-${i}">₹${(item.taxable||0).toFixed(2)}</td>
+        <td class="text-right font-bold text-primary" style="min-width:105px" id="pur-total-${i}">₹${(item.amount||0).toFixed(2)}</td>
+        <td style="width:35px;text-align:center"><span class="remove-row" onclick="PurchaseModule.removeLine(${i})" title="Remove">✕</span></td>
       </tr>`).join('');
   },
 
@@ -848,7 +856,19 @@ const PurchaseModule = {
     this.calculateTotals();
   },
 
-  addLine() { this.lineItems.push(this.emptyLine()); this.renderLineItems(); },
+  addLine() {
+    this.lineItems.push(this.emptyLine());
+    this.renderLineItems();
+    this.calculateTotals();
+    const newIdx = this.lineItems.length - 1;
+    setTimeout(() => {
+      const el = document.getElementById(`pur-item-${newIdx}`);
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  },
   removeLine(i) {
     if (this.lineItems.length <= 1) return;
     this.lineItems.splice(i, 1);
