@@ -623,6 +623,22 @@ const SalesModule = {
     return invoiceId;
   },
 
+  async saveAndPrint(status = 'confirmed') {
+    const invoiceId = await this.save(status);
+    if (invoiceId) {
+      await this.print(invoiceId);
+    }
+  },
+
+  saveInvoice(status = 'confirmed') {
+    return this.save(status);
+  },
+
+  printInvoice(id) {
+    if (!id && this.currentInvoice?.id) id = this.currentInvoice.id;
+    if (id) return this.print(id);
+  },
+
   async cancel(id) {
     if (!confirm('Cancel this invoice? This will reverse ledger entries.')) return;
     const inv = await db.get('invoices', id);

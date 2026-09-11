@@ -310,10 +310,14 @@
             <div class="page-title">🧾 Tax Invoice</div>
             <div class="page-subtitle">GST-compliant invoice with CGST/SGST/IGST auto-calculation</div>
           </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary" onclick="App.navigate('sales')">← Back</button>
-            <button class="btn btn-secondary" onclick="SalesModule.save('draft')">💾 Save Draft</button>
-            <button class="btn btn-primary" onclick="SalesModule.save('confirmed')">✅ Save & Confirm</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="btn btn-secondary" onclick="App.navigate('sales')">← Back</button>
+            <button type="button" class="btn btn-ghost" onclick="SalesModule.save('draft')">💾 Save Draft</button>
+            <button type="button" class="btn btn-secondary" onclick="SalesModule.save('confirmed')" title="Save without printing (Ctrl+S)">✅ Save Only</button>
+            <button type="button" class="btn btn-primary" onclick="SalesModule.saveAndPrint('confirmed')" id="btn-save-print-top" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);box-shadow:0 2px 6px rgba(37,99,235,0.4);font-weight:700;display:inline-flex;align-items:center;gap:6px;" title="Save and immediately open A4 Tally Tax Invoice Print (Ctrl+P)">
+              <span>🖨️ Save &amp; Print</span>
+              <kbd class="kbd-key" style="background:rgba(255,255,255,0.25);color:#fff;border-color:rgba(255,255,255,0.4);">Ctrl+P</kbd>
+            </button>
           </div>
         </div>
 
@@ -500,8 +504,12 @@
               </div>
 
               <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
-                <button class="btn btn-primary btn-block" onclick="SalesModule.save('confirmed')">✅ Save Invoice</button>
-                <button class="btn btn-secondary btn-block" onclick="SalesModule.save('draft')">💾 Save as Draft</button>
+                <button type="button" class="btn btn-primary btn-block btn-lg" onclick="SalesModule.saveAndPrint('confirmed')" id="btn-save-print-bottom" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);box-shadow:0 3px 8px rgba(37,99,235,0.35);font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;" title="Save and immediately print Tax Invoice (Ctrl+P)">
+                  <span>🖨️ Save &amp; Print</span>
+                  <kbd class="kbd-key" style="background:rgba(255,255,255,0.25);color:#fff;border-color:rgba(255,255,255,0.4);font-size:11px;">Ctrl+P</kbd>
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" onclick="SalesModule.save('confirmed')" title="Save Invoice (Ctrl+S)">✅ Save Invoice</button>
+                <button type="button" class="btn btn-ghost btn-block" onclick="SalesModule.save('draft')">💾 Save as Draft</button>
               </div>
             </div>
           </div>
@@ -1137,16 +1145,16 @@
           <td><strong>Add New Item Row</strong> & focus item search box</td>
         </tr>
         <tr>
+          <td><kbd class="kbd-key">Ctrl + P</kbd> / <kbd class="kbd-key">Alt + P</kbd></td>
+          <td><strong>Save &amp; Print Invoice</strong> (Opens A4 Tally print directly)</td>
+        </tr>
+        <tr>
           <td><kbd class="kbd-key">Ctrl + S</kbd> / <kbd class="kbd-key">Alt + S</kbd></td>
           <td><strong>Save Invoice</strong> (Sales or Purchase)</td>
         </tr>
         <tr>
           <td><kbd class="kbd-key">Alt + N</kbd></td>
           <td><strong>New Sales Invoice</strong></td>
-        </tr>
-        <tr>
-          <td><kbd class="kbd-key">Alt + P</kbd></td>
-          <td><strong>Print / Preview</strong> current invoice</td>
         </tr>
         <tr>
           <td><kbd class="kbd-key">↓</kbd> / <kbd class="kbd-key">↑</kbd></td>

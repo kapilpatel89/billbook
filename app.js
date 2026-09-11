@@ -233,27 +233,20 @@ const App = {
       if ((e.ctrlKey || e.altKey) && (keyUpper === 'S' || e.code === 'KeyS')) {
         if (activePage === 'invoice-form') {
           e.preventDefault();
-          SalesModule.saveInvoice();
+          SalesModule.save('confirmed');
           return;
         } else if (activePage === 'purchase-form') {
           e.preventDefault();
-          PurchaseModule.savePurchase();
+          PurchaseModule.save('confirmed');
           return;
         }
       }
 
-      // Alt + N: New Sales Invoice
-      if (e.altKey && (keyUpper === 'N' || e.code === 'KeyN')) {
-        e.preventDefault();
-        SalesModule.newInvoice();
-        return;
-      }
-
-      // Alt + P: Print Invoice
-      if (e.altKey && (keyUpper === 'P' || e.code === 'KeyP')) {
-        if (activePage === 'invoice-form' || activePage === 'sales') {
+      // Ctrl + P or Alt + P: Save & Print Invoice (on invoice form)
+      if ((e.ctrlKey || e.altKey) && (keyUpper === 'P' || e.code === 'KeyP')) {
+        if (activePage === 'invoice-form') {
           e.preventDefault();
-          SalesModule.printInvoice();
+          SalesModule.saveAndPrint('confirmed');
           return;
         }
       }
