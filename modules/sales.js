@@ -144,10 +144,12 @@ const SalesModule = {
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr id="line-${i}">
         <td style="min-width:30px;text-align:center;color:var(--text-muted)">${i + 1}</td>
-        <td style="min-width:210px" class="autocomplete-wrap">
-          <input class="form-control" placeholder="Item name..." value="${item.name||''}"
-            oninput="SalesModule.searchItem(this.value,${i})" id="item-name-${i}" autocomplete="off">
-          <div class="autocomplete-dropdown" id="item-drop-${i}"></div>
+        <td style="min-width:220px; vertical-align:top;">
+          <div class="autocomplete-wrap" style="position:relative; width:100%;">
+            <input class="form-control" placeholder="Item name..." value="${item.name||''}"
+              oninput="SalesModule.searchItem(this.value,${i})" id="item-name-${i}" autocomplete="off">
+            <div class="autocomplete-dropdown" id="item-drop-${i}" style="position:absolute; top:calc(100% + 2px); left:0; width:100%; min-width:280px; z-index:99999;"></div>
+          </div>
           <input class="form-control form-control-sm" placeholder="Item description / details..."
             value="${item.desc || item.description || ''}"
             id="item-desc-${i}"
@@ -171,9 +173,24 @@ const SalesModule = {
 
   async searchItem(query, lineIdx) {
     const drop = document.getElementById(`item-drop-${lineIdx}`);
+    if (!drop) return;
     if (!query || query.length < 1) { drop.classList.remove('open'); return; }
     const results = await ItemsModule.searchItems(query);
     if (!results.length) { drop.classList.remove('open'); return; }
+
+    // Position directly under the input field being typed in
+    const wrap = drop.parentElement;
+    if (wrap) {
+      const rect = wrap.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 220 && rect.top > 220) {
+        drop.style.top = 'auto';
+        drop.style.bottom = 'calc(100% + 2px)';
+      } else {
+        drop.style.top = 'calc(100% + 2px)';
+        drop.style.bottom = 'auto';
+      }
+    }
     drop.innerHTML = results.map(i => {
       const descSnippet = i.description ? `<div style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;">${i.description}</div>` : '';
       return `
@@ -626,10 +643,12 @@ const PurchaseModule = {
     container.innerHTML = this.lineItems.map((item, i) => `
       <tr>
         <td>${i + 1}</td>
-        <td class="autocomplete-wrap" style="min-width:180px">
-          <input class="form-control" value="${item.name||''}" placeholder="Item/Service..." id="pur-item-${i}"
-            oninput="PurchaseModule.searchItem(this.value,${i})" autocomplete="off">
-          <div class="autocomplete-dropdown" id="pur-drop-${i}"></div>
+        <td style="min-width:200px; vertical-align:top;">
+          <div class="autocomplete-wrap" style="position:relative; width:100%;">
+            <input class="form-control" value="${item.name||''}" placeholder="Item/Service..." id="pur-item-${i}"
+              oninput="PurchaseModule.searchItem(this.value,${i})" autocomplete="off">
+            <div class="autocomplete-dropdown" id="pur-drop-${i}" style="position:absolute; top:calc(100% + 2px); left:0; width:100%; min-width:280px; z-index:99999;"></div>
+          </div>
           <input class="form-control form-control-sm" placeholder="Item description / details..."
             value="${item.desc || item.description || ''}"
             id="pur-desc-${i}"
@@ -650,8 +669,23 @@ const PurchaseModule = {
 
   async searchItem(query, idx) {
     const drop = document.getElementById(`pur-drop-${idx}`);
+    if (!drop) return;
     if (!query) { drop.classList.remove('open'); return; }
     const results = await ItemsModule.searchItems(query);
+    if (!results.length) { drop.classList.remove('open'); return; }
+
+    const wrap = drop.parentElement;
+    if (wrap) {
+      const rect = wrap.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 220 && rect.top > 220) {
+        drop.style.top = 'auto';
+        drop.style.bottom = 'calc(100% + 2px)';
+      } else {
+        drop.style.top = 'calc(100% + 2px)';
+        drop.style.bottom = 'auto';
+      }
+    }
     drop.innerHTML = results.map(i => {
       const descSnippet = i.description ? `<div style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;">${i.description}</div>` : '';
       return `
@@ -665,8 +699,7 @@ const PurchaseModule = {
         </div>
       </div>`;
     }).join('');
-    drop.classList.add(results.length ? 'open' : '');
-    if (!results.length) drop.classList.remove('open');
+    drop.classList.add('open');
   },
 
   async selectItemById(idx, itemId) {

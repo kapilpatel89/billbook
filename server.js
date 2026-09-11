@@ -200,6 +200,7 @@ function sendJson(res, statusCode, data) {
 // Safe software updater from GitHub - STRICTLY UPDATES CODE ONLY, PRESERVES DATABASE 100%
 const CODE_FILES_TO_UPDATE = [
   'index.html',
+  'style.css',
   'app.js',
   'db.js',
   'server.js',

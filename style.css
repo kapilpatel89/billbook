@@ -482,7 +482,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .table-empty .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
 
 /* Invoice Line Items Table */
-.items-table-wrap { overflow-x: auto; margin: 12px 0; }
+.items-table-wrap { overflow-x: auto; overflow-y: visible; margin: 12px 0; min-height: 250px; }
 .items-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 .items-table th {
   background: var(--bg-secondary);
@@ -855,18 +855,21 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .filter-bar { flex-direction: column; }
 }
 
-/* HSN autocomplete dropdown */
+/* HSN & Item autocomplete dropdown */
 .autocomplete-wrap { position: relative; }
 .autocomplete-dropdown {
   position: absolute;
-  top: 100%; left: 0; right: 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  max-height: 200px;
+  top: calc(100% + 2px); left: 0;
+  width: 100%;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: var(--radius-md, 8px);
+  max-height: 220px;
   overflow-y: auto;
-  z-index: 500;
-  box-shadow: var(--shadow-md);
+  z-index: 99999 !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3);
   display: none;
 }
 .autocomplete-dropdown.open { display: block; }
