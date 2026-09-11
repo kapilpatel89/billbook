@@ -1,3 +1,4 @@
 @echo off
 cd /d "%~dp0"
-call start.bat
+start "" wscript.exe "%~dp0start_hidden.vbs"
+exit

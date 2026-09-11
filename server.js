@@ -205,6 +205,9 @@ const CODE_FILES_TO_UPDATE = [
   'db.js',
   'server.js',
   'start.bat',
+  'run.bat',
+  'stop.bat',
+  'start_hidden.vbs',
   'install.bat',
   'modules/company.js',
   'modules/gstr.js',
@@ -605,6 +608,16 @@ if (process.argv.includes('--init') || process.argv.includes('--setup')) {
 
 // Start Server
 initDirectories();
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[Notice] Port ${PORT} is already in use. Pro Billbook is already running in background at http://localhost:${PORT}/`);
+    process.exit(0);
+  } else {
+    console.error('[Server Error]:', err);
+  }
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log('====================================================');
   console.log('  PRO BILLBOOK GST - 100% OFFLINE LOCAL RUNNING     ');

@@ -147,7 +147,9 @@ const SalesModule = {
         <td style="min-width:220px; vertical-align:top;">
           <div class="autocomplete-wrap" style="position:relative; width:100%;">
             <input class="form-control" placeholder="Item name..." value="${item.name||''}"
-              oninput="SalesModule.searchItem(this.value,${i})" id="item-name-${i}" autocomplete="off">
+              oninput="SalesModule.searchItem(this.value,${i})"
+              onkeydown="SalesModule.handleItemKeydown(event,${i})"
+              id="item-name-${i}" autocomplete="off">
             <div class="autocomplete-dropdown" id="item-drop-${i}" style="position:absolute; top:calc(100% + 2px); left:0; width:100%; min-width:280px; z-index:99999;"></div>
           </div>
           <input class="form-control form-control-sm" placeholder="Item description / details..."
@@ -169,6 +171,66 @@ const SalesModule = {
         <td><span class="remove-row" onclick="SalesModule.removeLine(${i})" title="Remove">✕</span></td>
       </tr>
     `).join('');
+  },
+
+  navigateDropdown(event, dropEl) {
+    if (!dropEl || !dropEl.classList.contains('open')) return false;
+    const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+    if (!items.length) return false;
+
+    let currentIndex = items.findIndex(el => el.classList.contains('active'));
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (currentIndex >= 0) items[currentIndex].classList.remove('active');
+      currentIndex = (currentIndex + 1) % items.length;
+      items[currentIndex].classList.add('active');
+      items[currentIndex].scrollIntoView({ block: 'nearest' });
+      return true;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (currentIndex >= 0) items[currentIndex].classList.remove('active');
+      currentIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+      items[currentIndex].classList.add('active');
+      items[currentIndex].scrollIntoView({ block: 'nearest' });
+      return true;
+    }
+
+    if (event.key === 'Enter') {
+      if (currentIndex >= 0 && items[currentIndex]) {
+        event.preventDefault();
+        event.stopPropagation();
+        items[currentIndex].click();
+        return true;
+      } else if (items.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        items[0].click();
+        return true;
+      }
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      dropEl.classList.remove('open');
+      return true;
+    }
+
+    return false;
+  },
+
+  handleItemKeydown(event, lineIdx) {
+    const drop = document.getElementById(`item-drop-${lineIdx}`);
+    this.navigateDropdown(event, drop);
+  },
+
+  handlePartyKeydown(event) {
+    const drop = document.getElementById('inv-party-drop');
+    this.navigateDropdown(event, drop);
   },
 
   async searchItem(query, lineIdx) {
@@ -646,7 +708,9 @@ const PurchaseModule = {
         <td style="min-width:200px; vertical-align:top;">
           <div class="autocomplete-wrap" style="position:relative; width:100%;">
             <input class="form-control" value="${item.name||''}" placeholder="Item/Service..." id="pur-item-${i}"
-              oninput="PurchaseModule.searchItem(this.value,${i})" autocomplete="off">
+              oninput="PurchaseModule.searchItem(this.value,${i})"
+              onkeydown="PurchaseModule.handleItemKeydown(event,${i})"
+              autocomplete="off">
             <div class="autocomplete-dropdown" id="pur-drop-${i}" style="position:absolute; top:calc(100% + 2px); left:0; width:100%; min-width:280px; z-index:99999;"></div>
           </div>
           <input class="form-control form-control-sm" placeholder="Item description / details..."
@@ -665,6 +729,16 @@ const PurchaseModule = {
         <td class="text-right font-bold" id="pur-total-${i}">₹${(item.amount||0).toFixed(2)}</td>
         <td><span class="remove-row" onclick="PurchaseModule.removeLine(${i})">✕</span></td>
       </tr>`).join('');
+  },
+
+  handleItemKeydown(event, idx) {
+    const drop = document.getElementById(`pur-drop-${idx}`);
+    SalesModule.navigateDropdown(event, drop);
+  },
+
+  handlePartyKeydown(event) {
+    const drop = document.getElementById('pur-supplier-drop');
+    SalesModule.navigateDropdown(event, drop);
   },
 
   async searchItem(query, idx) {

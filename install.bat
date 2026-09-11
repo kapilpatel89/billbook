@@ -84,11 +84,10 @@ if %errorlevel% neq 0 (
 echo.
 :: Step 5: Create Windows Desktop Shortcut
 echo [Step 5/5] Creating Windows Desktop Shortcut...
-set "TARGET_BAT=%~dp0start.bat"
-set "ICON_PATH=%~dp0assets\billbook.ico"
+set "TARGET_VBS=%~dp0start_hidden.vbs"
 set "SHORTCUT_PATH=%USERPROFILE%\Desktop\Pro Billbook GST.lnk"
 
-powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT_PATH%'); $s.TargetPath = '%TARGET_BAT%'; $s.WorkingDirectory = '%~dp0'; $s.Description = 'Pro Billbook Indian GST Invoicing and Billing Software (Local Offline)'; $s.Save()" >nul 2>nul
+powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT_PATH%'); $s.TargetPath = 'wscript.exe'; $s.Arguments = '\"%TARGET_VBS%\"'; $s.WorkingDirectory = '%~dp0'; $s.Description = 'Pro Billbook Indian GST Invoicing and Billing Software (Local Offline)'; $s.Save()" >nul 2>nul
 
 if exist "%SHORTCUT_PATH%" (
     echo [OK] Desktop Shortcut created: "Pro Billbook GST"

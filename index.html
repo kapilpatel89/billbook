@@ -400,7 +400,7 @@
               </div>
               <div class="autocomplete-wrap form-group">
                 <label>Search Party <span class="req">*</span></label>
-                <input class="form-control" id="inv-party-name" placeholder="Type party name or GSTIN..." oninput="SalesModule.partySearch(this.value)">
+                <input class="form-control" id="inv-party-name" placeholder="Type party name or GSTIN..." oninput="SalesModule.partySearch(this.value)" onkeydown="SalesModule.handlePartyKeydown(event)" autocomplete="off">
                 <div class="autocomplete-dropdown" id="inv-party-drop"></div>
               </div>
               <div class="form-row-2">
@@ -532,7 +532,7 @@
             <div class="form-group">
               <label>Supplier / Party <span class="req">*</span></label>
               <div class="autocomplete-wrap">
-                <input class="form-control" id="pur-supplier-name" placeholder="Search supplier..." oninput="PurchaseModule.partySearch(this.value)">
+                <input class="form-control" id="pur-supplier-name" placeholder="Search supplier..." oninput="PurchaseModule.partySearch(this.value)" onkeydown="PurchaseModule.handlePartyKeydown(event)" autocomplete="off">
                 <div class="autocomplete-dropdown" id="pur-supplier-drop"></div>
               </div>
             </div>
