@@ -10,5 +10,8 @@ WshShell.CurrentDirectory = scriptDir
 ' Launch Node server with WindowStyle = 0 (vbHide - 100% invisible, no taskbar button)
 WshShell.Run "node server.js", 0, False
 
-' Open browser at http://localhost:3000/ after 1 second
-WshShell.Run "cmd /c timeout /t 1 /nobreak >nul & start http://localhost:3000/", 0, False
+' Wait 1 second for server to initialize
+WScript.Sleep 1000
+
+' Open default browser
+WshShell.Run "http://localhost:3000/"
