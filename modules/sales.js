@@ -70,6 +70,10 @@ const SalesModule = {
     document.getElementById('inv-narration').value = '';
     document.getElementById('inv-ewb-toggle').checked = false;
     document.getElementById('inv-einv-toggle').checked = co?.eInvoiceEnabled || false;
+    if (document.getElementById('inv-vehicle-no')) document.getElementById('inv-vehicle-no').value = '';
+    if (document.getElementById('inv-ewb-no')) document.getElementById('inv-ewb-no').value = '';
+    if (document.getElementById('inv-dispatch-through')) document.getElementById('inv-dispatch-through').value = '';
+    if (document.getElementById('inv-lr-no')) document.getElementById('inv-lr-no').value = '';
     this.renderLineItems();
     this.calculateTotals();
     App.navigate('invoice-form');
@@ -92,6 +96,10 @@ const SalesModule = {
     document.getElementById('inv-round-off').checked = inv.roundOff !== false;
     document.getElementById('inv-ewb-toggle').checked = !!inv.hasEWB;
     document.getElementById('inv-einv-toggle').checked = !!inv.hasEInvoice;
+    if (document.getElementById('inv-vehicle-no')) document.getElementById('inv-vehicle-no').value = inv.vehicleNo || '';
+    if (document.getElementById('inv-ewb-no')) document.getElementById('inv-ewb-no').value = inv.ewbNo || '';
+    if (document.getElementById('inv-dispatch-through')) document.getElementById('inv-dispatch-through').value = inv.dispatchThrough || '';
+    if (document.getElementById('inv-lr-no')) document.getElementById('inv-lr-no').value = inv.lrNo || '';
     this.renderLineItems();
     this.calculateTotals();
     App.navigate('invoice-form');
@@ -299,6 +307,25 @@ const SalesModule = {
   },
 
   async generateInvoiceNo() {
+    const invoices = await db.getAll('invoices');
+    if (invoices && invoices.length > 0) {
+      // Find latest non-cancelled invoice to continue numbering from
+      const sorted = [...invoices].filter(i => i.invoiceNo && i.status !== 'cancelled').sort((a, b) => {
+        const idA = Number(a.id) || 0;
+        const idB = Number(b.id) || 0;
+        if (idB !== idA) return idB - idA;
+        const tA = new Date(a.createdAt || a.date).getTime() || 0;
+        const tB = new Date(b.createdAt || b.date).getTime() || 0;
+        return tB - tA;
+      });
+
+      if (sorted.length > 0) {
+        const lastInv = sorted[0];
+        const nextNo = this.incrementInvoiceNo(lastInv.invoiceNo);
+        if (nextNo) return nextNo;
+      }
+    }
+
     const co = App.company;
     const prefix = co?.invoicePrefix || 'INV';
     const fy = co?.fyear || '2526';
@@ -310,11 +337,48 @@ const SalesModule = {
     return `${prefix}${num}`;
   },
 
+  incrementInvoiceNo(invNoStr) {
+    if (!invNoStr) return null;
+    const str = String(invNoStr).trim();
+    // Matches prefix, last contiguous digit block, and any suffix
+    const match = str.match(/^(.*?)(\d+)([^\d]*)$/);
+    if (!match) return null;
+    const prefix = match[1];
+    const numStr = match[2];
+    const suffix = match[3];
+    const nextVal = parseInt(numStr, 10) + 1;
+    const padded = String(nextVal).padStart(numStr.length, '0');
+    return `${prefix}${padded}${suffix}`;
+  },
+
   async save(status = 'confirmed') {
     const items = this.lineItems.filter(l => l.name && l.qty > 0);
     if (!items.length) { App.toast('Add at least one item', 'error'); return; }
     const partyName = document.getElementById('inv-party-name').value.trim();
     if (!partyName) { App.toast('Select a party', 'error'); return; }
+
+    const invoiceNo = document.getElementById('inv-no').value.trim();
+    if (!invoiceNo) { App.toast('Invoice number is required', 'error'); return; }
+
+    const vehicleNo = document.getElementById('inv-vehicle-no')?.value.trim().toUpperCase() || '';
+    const ewbNo = document.getElementById('inv-ewb-no')?.value.trim() || '';
+    const dispatchThrough = document.getElementById('inv-dispatch-through')?.value.trim() || '';
+    const lrNo = document.getElementById('inv-lr-no')?.value.trim() || '';
+    const hasEWBToggle = document.getElementById('inv-ewb-toggle')?.checked;
+    const hasEWB = Boolean(hasEWBToggle || ewbNo);
+
+    // Duplicate invoice number warning (soft validation allowing user override)
+    const allInvoices = await db.getAll('invoices');
+    const dup = allInvoices.find(i => 
+      String(i.invoiceNo).toLowerCase() === invoiceNo.toLowerCase() &&
+      i.id !== this.currentInvoice?.id &&
+      i.status !== 'cancelled'
+    );
+    if (dup) {
+      if (!confirm(`Warning: Invoice number "${invoiceNo}" is already used for ${dup.partyName || 'another bill'}. Continue with this number?`)) {
+        return;
+      }
+    }
 
     let taxable = 0, cgst = 0, sgst = 0, igst = 0, cess = 0;
     for (const l of items) {
@@ -328,7 +392,7 @@ const SalesModule = {
     const grand = subtotal + roundOff;
 
     const data = {
-      invoiceNo: document.getElementById('inv-no').value.trim(),
+      invoiceNo,
       date: document.getElementById('inv-date').value,
       dueDate: document.getElementById('inv-due').value,
       partyId: this.selectedParty?.id || null,
@@ -340,7 +404,11 @@ const SalesModule = {
       partyPin: this.selectedParty?.pin || '',
       supplyType: this.isIGST() ? 'IGST' : 'CGST_SGST',
       narration: document.getElementById('inv-narration').value.trim(),
-      hasEWB: document.getElementById('inv-ewb-toggle').checked,
+      vehicleNo,
+      ewbNo,
+      dispatchThrough,
+      lrNo,
+      hasEWB,
       hasEInvoice: document.getElementById('inv-einv-toggle').checked,
       items,
       taxableAmount: taxable,
@@ -350,7 +418,7 @@ const SalesModule = {
       grandTotal: grand,
       status,
       fyear: App.company?.fyear || '2526',
-      createdAt: new Date().toISOString(),
+      createdAt: this.currentInvoice?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
@@ -380,6 +448,16 @@ const SalesModule = {
       }
       App.toast('Invoice saved!', 'success');
     }
+
+    // Synchronize sequence so future invoices continue from this number
+    const match = invoiceNo.match(/^(.*?)(\d+)([^\d]*)$/);
+    if (match) {
+      const num = parseInt(match[2], 10);
+      if (!isNaN(num)) {
+        await db.setSequence('invoice', num);
+      }
+    }
+
     App.navigate('sales');
     await this.render();
     return invoiceId;

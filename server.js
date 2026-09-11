@@ -248,16 +248,27 @@ async function handleApi(req, res, urlPath) {
     return sendJson(res, 200, { success: true, ...result });
   }
 
-  // Sequence auto-increment
-  if (resource === 'sequence' && method === 'POST') {
+  // Sequence auto-increment or explicit set
+  if (resource === 'sequence') {
     const seqName = id || (await parseJsonBody(req)).name;
     if (!seqName) return sendJson(res, 400, { error: 'Sequence name required' });
     const sequences = readStore('sequences') || {};
-    const cur = Number(sequences[seqName]) || 0;
-    const next = cur + 1;
-    sequences[seqName] = next;
-    writeStore('sequences', sequences);
-    return sendJson(res, 200, { name: seqName, value: next });
+
+    if (method === 'PUT') {
+      const body = await parseJsonBody(req);
+      const val = Number(body.value) || 0;
+      sequences[seqName] = val;
+      writeStore('sequences', sequences);
+      return sendJson(res, 200, { name: seqName, value: val });
+    }
+
+    if (method === 'POST') {
+      const cur = Number(sequences[seqName]) || 0;
+      const next = cur + 1;
+      sequences[seqName] = next;
+      writeStore('sequences', sequences);
+      return sendJson(res, 200, { name: seqName, value: next });
+    }
   }
 
   // Bulk Seed HSN

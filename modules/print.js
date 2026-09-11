@@ -1,11 +1,11 @@
 // ============================================================
 // Pro Billbook - Print Module
-// Space-Optimized A4 Tally Prime / ERP 9 Style Tax Invoice
-// Single-sheet A4 Guarantee (Original / Duplicate / Triplicate)
+// Full-Page A4 Tally Prime / ERP 9 Style Tax Invoice
+// Engineered to fill 100% of standard A4 paper height (297mm)
 // ============================================================
 
 const PrintModule = {
-  // ---- MAIN INVOICE PRINT (Tally Style Tax Invoice - A4 Space Optimized) ----
+  // ---- MAIN INVOICE PRINT (Full Page A4 Tally Style Tax Invoice) ----
   async printInvoice(co, inv, party) {
     const ewbData = inv.hasEWB ? (await db.getByIndex('ewaybills', 'invoiceId', inv.id))[0] : null;
     const eInvData = inv.hasEInvoice ? (await db.getByIndex('einvoices', 'invoiceId', inv.id))[0] : null;
@@ -61,19 +61,25 @@ const PrintModule = {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
           font-family: Arial, Helvetica, sans-serif;
-          background: #e2e8f0;
+          background: #334155;
           color: #000;
-          font-size: 8.5px;
-          line-height: 1.25;
+          font-size: 9px;
+          line-height: 1.3;
         }
-        /* A4 Page Container (Screen & Print) */
+
+        /* Full A4 Page Sheet - Fills 100% of 297mm height */
         .tally-sheet {
-          width: 200mm;
-          max-width: 200mm;
-          margin: 6mm auto 10mm;
+          width: 210mm;
+          max-width: 210mm;
+          min-height: 297mm;
+          height: 297mm;
+          margin: 10mm auto;
           background: #fff;
-          padding: 4mm 5mm;
-          box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+          padding: 6mm 8mm 6mm 8mm;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
           position: relative;
           page-break-after: always;
           page-break-inside: avoid;
@@ -81,40 +87,51 @@ const PrintModule = {
         .tally-sheet:last-child {
           page-break-after: auto;
         }
-        /* Top Header Title */
-        .tally-tax-inv-title {
+
+        /* Header Title */
+        .tally-top-header {
           text-align: center;
-          font-size: 13.5px;
+          margin-bottom: 4px;
+          flex-shrink: 0;
+        }
+        .tally-tax-inv-title {
+          font-size: 16px;
           font-weight: 800;
-          letter-spacing: 1.2px;
+          letter-spacing: 1.5px;
           text-transform: uppercase;
           margin-bottom: 1px;
         }
         .tally-copy-title {
-          text-align: center;
-          font-size: 8.5px;
+          font-size: 9.5px;
           font-weight: 700;
           color: #222;
-          margin-bottom: 4px;
         }
-        /* E-Invoice IRN header if present */
+
+        /* E-Invoice IRN Top Box */
         .tally-irn-box {
           border: 1px solid #000;
-          padding: 2px 5px;
+          padding: 3px 6px;
           margin-bottom: 4px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 7.5px;
+          font-size: 8px;
+          flex-shrink: 0;
         }
-        /* Master Box */
+
+        /* Master Box - Expands Vertically to Fill Full A4 Page */
         .tally-box {
           border: 1.5px solid #000;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
+
         /* Two Column Header Grid */
         .tally-grid-2col {
           display: flex;
           border-bottom: 1px solid #000;
+          flex-shrink: 0;
         }
         .tally-left-col {
           width: 52%;
@@ -126,41 +143,42 @@ const PrintModule = {
           width: 48%;
         }
         .tally-cell-pad {
-          padding: 3px 5px;
+          padding: 5px 7px;
         }
         .tally-border-top {
           border-top: 1px solid #000;
         }
         .tally-company-name {
-          font-size: 11.5px;
+          font-size: 13px;
           font-weight: 800;
           text-transform: uppercase;
-          margin-bottom: 1px;
-          letter-spacing: 0.2px;
+          margin-bottom: 2px;
+          letter-spacing: 0.3px;
         }
         .tally-party-name {
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 800;
           margin-bottom: 1px;
         }
         .tally-sec-tag {
-          font-size: 7.5px;
+          font-size: 8px;
           font-weight: 700;
           text-transform: uppercase;
           color: #333;
           margin-bottom: 1px;
         }
         .tally-addr-line {
-          font-size: 8px;
+          font-size: 8.5px;
           color: #111;
           margin-bottom: 1px;
-          line-height: 1.2;
+          line-height: 1.25;
         }
         .tally-field {
-          font-size: 8px;
-          line-height: 1.25;
+          font-size: 8.5px;
+          line-height: 1.3;
           margin-top: 1px;
         }
+
         /* Meta Table in Right Column */
         .tally-meta-table {
           width: 100%;
@@ -170,9 +188,9 @@ const PrintModule = {
         .tally-meta-table td {
           border-bottom: 1px solid #000;
           border-right: 1px solid #000;
-          padding: 2px 4px;
+          padding: 3px 6px;
           vertical-align: top;
-          font-size: 8px;
+          font-size: 8.5px;
         }
         .tally-meta-table tr td:last-child {
           border-right: none;
@@ -186,58 +204,78 @@ const PrintModule = {
           display: block;
         }
         .tally-meta-val {
-          font-size: 8.5px;
+          font-size: 9px;
+          font-weight: 600;
           margin-top: 1px;
         }
-        /* Items Table */
+
+        /* Full Page Middle Items Section - Flexibly Expands to Fill Full A4 Sheet */
+        .tally-items-container {
+          flex: 1;
+          min-height: 110mm;
+          display: flex;
+          flex-direction: column;
+          border-bottom: 1px solid #000;
+        }
         .tally-items-table {
           width: 100%;
+          height: 100%;
           border-collapse: collapse;
-          border-bottom: 1px solid #000;
+          table-layout: fixed;
         }
         .tally-items-table th {
           border-bottom: 1px solid #000;
           border-right: 1px solid #000;
-          padding: 3px 4px;
-          font-size: 8px;
+          padding: 4px 6px;
+          font-size: 8.5px;
           font-weight: 800;
           background: #fafafa;
+          height: 22px;
         }
         .tally-items-table th:last-child {
           border-right: none;
         }
         .tally-items-table td {
           border-right: 1px solid #000;
-          padding: 2px 4px;
+          padding: 3px 6px;
           vertical-align: top;
-          font-size: 8.5px;
+          font-size: 9px;
         }
         .tally-items-table td:last-child {
           border-right: none;
         }
         .tally-items-table tfoot td {
           border-top: 1px solid #000;
-          padding: 3px 5px;
+          padding: 4px 6px;
           font-weight: bold;
+          font-size: 10px;
+          height: 22px;
           background: #fff;
         }
+        .tally-spacer-row {
+          height: 100%;
+        }
+
         /* Amount in Words Box */
         .tally-amt-words {
-          padding: 3px 5px;
+          padding: 4px 7px;
           border-bottom: 1px solid #000;
           background: #fff;
-          font-size: 8px;
+          font-size: 8.5px;
+          flex-shrink: 0;
         }
+
         /* HSN Table */
         .tally-hsn-table {
           width: 100%;
           border-collapse: collapse;
           border-bottom: 1px solid #000;
+          flex-shrink: 0;
         }
         .tally-hsn-table th {
           border-bottom: 1px solid #000;
           border-right: 1px solid #000;
-          padding: 2.5px 4px;
+          padding: 3px 5px;
           font-size: 8px;
           font-weight: 800;
           text-align: center;
@@ -249,8 +287,8 @@ const PrintModule = {
         .tally-hsn-table td {
           border-bottom: 1px solid #000;
           border-right: 1px solid #000;
-          padding: 2px 4px;
-          font-size: 8px;
+          padding: 3px 5px;
+          font-size: 8.5px;
         }
         .tally-hsn-table td:last-child {
           border-right: none;
@@ -262,30 +300,34 @@ const PrintModule = {
           background: #fff;
         }
         .tally-tax-words {
-          padding: 3px 5px;
+          padding: 4px 7px;
           border-bottom: 1px solid #000;
-          font-size: 8px;
+          font-size: 8.5px;
+          flex-shrink: 0;
         }
         .tally-narration {
-          padding: 2.5px 5px;
+          padding: 3px 7px;
           border-bottom: 1px solid #000;
-          font-size: 8px;
+          font-size: 8.5px;
+          flex-shrink: 0;
         }
-        /* Footer Grid */
+
+        /* Footer Grid: Anchored to Bottom of A4 Sheet */
         .tally-footer-grid {
           display: flex;
+          flex-shrink: 0;
         }
         .tally-ftr-left {
           width: 58%;
           border-right: 1px solid #000;
-          padding: 4px 6px;
+          padding: 5px 7px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
         }
         .tally-ftr-right {
           width: 42%;
-          padding: 4px 6px;
+          padding: 5px 8px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -293,44 +335,45 @@ const PrintModule = {
         }
         .tally-bank-block .k {
           display: inline-block;
-          width: 95px;
+          width: 105px;
         }
         .tally-decl-block {
-          margin-top: 3px;
-          padding-top: 2px;
+          margin-top: 5px;
+          padding-top: 3px;
           border-top: 1px solid #000;
           font-size: 7.5px;
           color: #222;
-          line-height: 1.2;
+          line-height: 1.25;
         }
         .tally-sign-for {
-          font-size: 8.5px;
+          font-size: 9px;
           text-align: right;
         }
         .tally-sign-space {
-          height: 38px;
+          height: 50px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .tally-sign-title {
-          font-size: 8.5px;
+          font-size: 9px;
           font-weight: bold;
           text-align: right;
         }
         .tally-bottom-note {
           text-align: center;
-          font-size: 7.5px;
-          margin-top: 2px;
+          font-size: 8px;
+          margin-top: 3px;
           color: #333;
+          flex-shrink: 0;
         }
 
-        /* Strict A4 Page Print Setup - Zero Overflow */
+        /* Full Page A4 Print Rules */
         @media print {
           html, body {
             background: #fff !important;
-            width: 100% !important;
-            height: 100% !important;
+            width: 210mm !important;
+            height: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
             -webkit-print-color-adjust: exact;
@@ -341,13 +384,16 @@ const PrintModule = {
             margin: 5mm 6mm 5mm 6mm;
           }
           .tally-sheet {
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            min-height: auto !important;
-            height: auto !important;
+            height: 285mm !important;
+            max-height: 285mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
             page-break-after: always !important;
             page-break-inside: avoid !important;
           }
@@ -356,6 +402,22 @@ const PrintModule = {
           }
           .tally-box {
             border: 1.5px solid #000 !important;
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .tally-items-container {
+            flex: 1 !important;
+            min-height: 110mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .tally-items-table {
+            height: 100% !important;
+            table-layout: fixed !important;
+          }
+          .tally-spacer-row {
+            height: 100% !important;
           }
         }
       </style>
@@ -373,11 +435,11 @@ const PrintModule = {
 
       // Item rows
       const itemRows = (inv.items || []).map((item, idx) => `
-        <tr>
+        <tr style="height:20px; vertical-align:top;">
           <td style="text-align:center;">${idx + 1}</td>
           <td>
             <strong>${item.name}</strong>
-            ${item.desc ? `<br><span style="font-size:7.5px;color:#333;">${item.desc}</span>` : ''}
+            ${item.desc ? `<br><span style="font-size:8px;color:#333;">${item.desc}</span>` : ''}
           </td>
           <td style="text-align:center;">${item.hsn || '-'}</td>
           <td style="text-align:right;"><strong>${Number(item.qty||0).toFixed(2)} ${item.unit || ''}</strong></td>
@@ -392,7 +454,7 @@ const PrintModule = {
       let taxLedgerRows = '';
       if (isIGST) {
         taxLedgerRows += `
-          <tr>
+          <tr style="height:18px; vertical-align:top;">
             <td></td>
             <td style="padding-left:14px;"><em>Output IGST</em></td>
             <td></td>
@@ -404,7 +466,7 @@ const PrintModule = {
         `;
       } else {
         taxLedgerRows += `
-          <tr>
+          <tr style="height:18px; vertical-align:top;">
             <td></td>
             <td style="padding-left:14px;"><em>Output CGST</em></td>
             <td></td>
@@ -413,7 +475,7 @@ const PrintModule = {
             <td></td>
             <td style="text-align:right;">${fmt(inv.cgst)}</td>
           </tr>
-          <tr>
+          <tr style="height:18px; vertical-align:top;">
             <td></td>
             <td style="padding-left:14px;"><em>Output SGST</em></td>
             <td></td>
@@ -445,9 +507,6 @@ const PrintModule = {
         `;
       }
 
-      // Compact height spacer row ensuring single-page A4 balance
-      const spacerHeight = Math.max(15, 90 - ((inv.items || []).length * 18));
-
       // QR Code data URL
       const qrDataUrl = (eInvData || inv.signedQr)
         ? this.getQRCodeDataURL(eInvData?.irn || inv.signedQr || `${inv.invoiceNo}|${inv.date}|${inv.grandTotal}`)
@@ -469,13 +528,15 @@ const PrintModule = {
 
       printWin.document.write(`
         <div class="tally-sheet">
-          <!-- Centered TAX INVOICE Header -->
-          <div class="tally-tax-inv-title">TAX INVOICE</div>
-          <div class="tally-copy-title">(${copies[c]})</div>
+          <!-- Centered Top TAX INVOICE Header -->
+          <div class="tally-top-header">
+            <div class="tally-tax-inv-title">TAX INVOICE</div>
+            <div class="tally-copy-title">(${copies[c]})</div>
+          </div>
 
           ${irnHeader}
 
-          <!-- Main Tally Box -->
+          <!-- Full Page Master Box -->
           <div class="tally-box">
 
             <!-- Two-Column Header -->
@@ -548,8 +609,8 @@ const PrintModule = {
                   </tr>
                   <tr>
                     <td>
-                      <span class="tally-meta-lbl">Dispatch Doc No.</span>
-                      <div class="tally-meta-val">${inv.dispatchDocNo || '-'}</div>
+                      <span class="tally-meta-lbl">Dispatch Doc / e-Way Bill No.</span>
+                      <div class="tally-meta-val">${inv.ewbNo ? '<strong>EWB: ' + inv.ewbNo + '</strong>' : (inv.dispatchDocNo || (ewbData?.ewbNo ? 'EWB: ' + ewbData.ewbNo : '-'))}</div>
                     </td>
                     <td>
                       <span class="tally-meta-lbl">Delivery Note Date</span>
@@ -573,7 +634,7 @@ const PrintModule = {
                     </td>
                     <td>
                       <span class="tally-meta-lbl">Motor Vehicle No.</span>
-                      <div class="tally-meta-val">${inv.vehicleNo || (ewbData?.transPortion?.vehicleNo) || '-'}</div>
+                      <div class="tally-meta-val"><strong>${inv.vehicleNo || (ewbData?.transPortion?.vehicleNo) || (ewbData?.vehicleNo) || '-'}</strong></div>
                     </td>
                   </tr>
                   <tr>
@@ -586,48 +647,51 @@ const PrintModule = {
               </div>
             </div>
 
-            <!-- Items Table (Tally Accounting Voucher Format) -->
-            <table class="tally-items-table">
-              <thead>
-                <tr>
-                  <th style="width:28px; text-align:center;">Sl<br>No.</th>
-                  <th style="text-align:left;">Description of Goods</th>
-                  <th style="width:58px; text-align:center;">HSN/SAC</th>
-                  <th style="width:75px; text-align:right;">Quantity</th>
-                  <th style="width:65px; text-align:right;">Rate</th>
-                  <th style="width:35px; text-align:center;">per</th>
-                  <th style="width:85px; text-align:right;">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemRows}
-                ${taxLedgerRows}
-                <tr style="height:${spacerHeight}px;">
-                  <td style="border-right:1px solid #000;"></td>
-                  <td style="border-right:1px solid #000;"></td>
-                  <td style="border-right:1px solid #000;"></td>
-                  <td style="border-right:1px solid #000;"></td>
-                  <td style="border-right:1px solid #000;"></td>
-                  <td style="border-right:1px solid #000;"></td>
-                  <td></td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3" style="text-align:right; font-weight:bold;">Total</td>
-                  <td style="text-align:right; font-weight:bold;">${totalQty.toFixed(2)} ${primaryUnit}</td>
-                  <td></td>
-                  <td></td>
-                  <td style="text-align:right; font-weight:bold; font-size:9.5px;">₹ ${fmt(inv.grandTotal)}</td>
-                </tr>
-              </tfoot>
-            </table>
+            <!-- Full Page Height Items Table -->
+            <div class="tally-items-container">
+              <table class="tally-items-table">
+                <thead>
+                  <tr style="height:22px;">
+                    <th style="width:32px; text-align:center;">Sl<br>No.</th>
+                    <th style="text-align:left;">Description of Goods</th>
+                    <th style="width:65px; text-align:center;">HSN/SAC</th>
+                    <th style="width:85px; text-align:right;">Quantity</th>
+                    <th style="width:70px; text-align:right;">Rate</th>
+                    <th style="width:40px; text-align:center;">per</th>
+                    <th style="width:95px; text-align:right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemRows}
+                  ${taxLedgerRows}
+                  <!-- The Spacer Row Expands to push Total to the bottom of the full-page container -->
+                  <tr class="tally-spacer-row">
+                    <td style="border-right:1px solid #000;"></td>
+                    <td style="border-right:1px solid #000;"></td>
+                    <td style="border-right:1px solid #000;"></td>
+                    <td style="border-right:1px solid #000;"></td>
+                    <td style="border-right:1px solid #000;"></td>
+                    <td style="border-right:1px solid #000;"></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr style="height:22px;">
+                    <td colspan="3" style="text-align:right; font-weight:bold;">Total</td>
+                    <td style="text-align:right; font-weight:bold;">${totalQty.toFixed(2)} ${primaryUnit}</td>
+                    <td></td>
+                    <td></td>
+                    <td style="text-align:right; font-weight:bold; font-size:10px;">₹ ${fmt(inv.grandTotal)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
             <!-- Amount in Words -->
             <div class="tally-amt-words">
-              <span style="float:right; font-size:8px; font-weight:bold; color:#444;">E. & O.E</span>
-              <span style="font-size:7.5px; text-transform:uppercase; color:#333;">Amount Chargeable (in words):</span><br>
-              <strong style="font-size:9px;">INR ${tallyWords(inv.grandTotal)}</strong>
+              <span style="float:right; font-size:8.5px; font-weight:bold; color:#444;">E. & O.E</span>
+              <span style="font-size:8px; text-transform:uppercase; color:#333;">Amount Chargeable (in words):</span><br>
+              <strong style="font-size:9.5px;">INR ${tallyWords(inv.grandTotal)}</strong>
             </div>
 
             <!-- HSN/SAC Tax Summary Table (Signature Tally GST Breakdown) -->
@@ -635,28 +699,28 @@ const PrintModule = {
               <thead>
                 ${isIGST ? `
                   <tr>
-                    <th rowspan="2" style="width:80px; text-align:center;">HSN/SAC</th>
-                    <th rowspan="2" style="width:95px; text-align:right;">Taxable<br>Value</th>
+                    <th rowspan="2" style="width:85px; text-align:center;">HSN/SAC</th>
+                    <th rowspan="2" style="width:105px; text-align:right;">Taxable<br>Value</th>
                     <th colspan="2" style="text-align:center;">Integrated Tax</th>
-                    <th rowspan="2" style="width:95px; text-align:right;">Total<br>Tax Amount</th>
+                    <th rowspan="2" style="width:105px; text-align:right;">Total<br>Tax Amount</th>
                   </tr>
                   <tr>
-                    <th style="width:55px; text-align:center;">Rate</th>
-                    <th style="width:80px; text-align:right;">Amount</th>
+                    <th style="width:60px; text-align:center;">Rate</th>
+                    <th style="width:90px; text-align:right;">Amount</th>
                   </tr>
                 ` : `
                   <tr>
-                    <th rowspan="2" style="width:80px; text-align:center;">HSN/SAC</th>
-                    <th rowspan="2" style="width:90px; text-align:right;">Taxable<br>Value</th>
+                    <th rowspan="2" style="width:85px; text-align:center;">HSN/SAC</th>
+                    <th rowspan="2" style="width:95px; text-align:right;">Taxable<br>Value</th>
                     <th colspan="2" style="text-align:center;">Central Tax</th>
                     <th colspan="2" style="text-align:center;">State Tax</th>
-                    <th rowspan="2" style="width:90px; text-align:right;">Total<br>Tax Amount</th>
+                    <th rowspan="2" style="width:95px; text-align:right;">Total<br>Tax Amount</th>
                   </tr>
                   <tr>
-                    <th style="width:48px; text-align:center;">Rate</th>
-                    <th style="width:70px; text-align:right;">Amount</th>
-                    <th style="width:48px; text-align:center;">Rate</th>
-                    <th style="width:70px; text-align:right;">Amount</th>
+                    <th style="width:50px; text-align:center;">Rate</th>
+                    <th style="width:75px; text-align:right;">Amount</th>
+                    <th style="width:50px; text-align:center;">Rate</th>
+                    <th style="width:75px; text-align:right;">Amount</th>
                   </tr>
                 `}
               </thead>
@@ -688,7 +752,7 @@ const PrintModule = {
 
             ${inv.narration ? `<div class="tally-narration"><strong>Remarks:</strong> ${inv.narration}</div>` : ''}
 
-            <!-- Bottom Section: Bank Details & Signatory -->
+            <!-- Bottom Section: Bank Details & Signatory Anchored to Bottom of Page -->
             <div class="tally-footer-grid">
               <div class="tally-ftr-left">
                 <div class="tally-bank-block">
@@ -708,7 +772,7 @@ const PrintModule = {
               <div class="tally-ftr-right">
                 <div class="tally-sign-for">for <strong>${(co?.name || '').toUpperCase()}</strong></div>
                 <div class="tally-sign-space">
-                  ${qrDataUrl ? `<img src="${qrDataUrl}" style="width:38px; height:38px; margin:1px auto; display:block;">` : ''}
+                  ${qrDataUrl ? `<img src="${qrDataUrl}" style="width:44px; height:44px; margin:1px auto; display:block;">` : ''}
                 </div>
                 <div class="tally-sign-title">Authorised Signatory</div>
               </div>
@@ -847,8 +911,10 @@ const PrintModule = {
 
   buildEWBSection(ewb, inv) {
     return `<div class="tally-sheet" style="page-break-before:always;">
-      <div class="tally-tax-inv-title">E-WAY BILL REPORT</div>
-      <div class="tally-copy-title">(Transporter Copy)</div>
+      <div class="tally-top-header">
+        <div class="tally-tax-inv-title">E-WAY BILL REPORT</div>
+        <div class="tally-copy-title">(Transporter Copy)</div>
+      </div>
       <div class="tally-box" style="padding:8px;">
         <div style="font-weight:bold;font-size:11px;margin-bottom:6px;border-bottom:1px solid #000;padding-bottom:3px;">PART-A (Vehicle & Goods Information)</div>
         <table class="tally-meta-table" style="border:1px solid #000;margin-bottom:8px;">

@@ -11,5 +11,18 @@
     "createdAt": "2026-09-10T16:02:10.723Z",
     "id": 1,
     "updatedAt": "2026-09-10T16:02:10.725Z"
+  },
+  {
+    "partyId": 1,
+    "date": "2026-09-11",
+    "type": "SALES_INVOICE",
+    "refId": 2,
+    "refNo": "PE/2526/0005",
+    "narration": "Sales Invoice PE/2526/0005",
+    "amount": 2950,
+    "side": "DR",
+    "createdAt": "2026-09-11T01:59:03.244Z",
+    "id": 2,
+    "updatedAt": "2026-09-11T01:59:03.246Z"
   }
 ]

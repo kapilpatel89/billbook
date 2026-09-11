@@ -376,8 +376,29 @@ class BillbookDB {
     });
   }
 
+  async setSequence(name, value = 0) {
+    const numVal = Number(value) || 0;
+    if (this.isServerOnline) {
+      try {
+        const res = await fetch(`/api/sequence/${name}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: numVal }),
+        });
+        if (res.ok) {
+          await this._idbPut('sequences', { name, value: numVal });
+          return numVal;
+        }
+      } catch (err) {
+        console.warn('Fallback setSequence to IDB:', err);
+      }
+    }
+    await this._idbPut('sequences', { name, value: numVal });
+    return numVal;
+  }
+
   async resetSequence(name, value = 0) {
-    return this.put('sequences', { name, value });
+    return this.setSequence(name, value);
   }
 
   // Company Profile
