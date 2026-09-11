@@ -451,7 +451,7 @@ const PrintModule = {
           <td style="text-align:center;">${idx + 1}</td>
           <td>
             <strong>${item.name}</strong>
-            ${item.desc ? `<br><span style="font-size:8px;color:#333;">${item.desc}</span>` : ''}
+            ${(item.desc || item.description) ? `<div style="font-size:8px;color:#222;font-style:italic;margin-top:2px;line-height:1.2;">${item.desc || item.description}</div>` : ''}
           </td>
           <td style="text-align:center;">${item.hsn || '-'}</td>
           <td style="text-align:right;"><strong>${Number(item.qty||0).toFixed(2)} ${item.unit || ''}</strong></td>
