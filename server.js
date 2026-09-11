@@ -609,10 +609,22 @@ if (process.argv.includes('--init') || process.argv.includes('--setup')) {
 // Start Server
 initDirectories();
 
+let bindRetries = 0;
+const MAX_BIND_RETRIES = 5;
+
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.log(`[Notice] Port ${PORT} is already in use. Pro Billbook is already running in background at http://localhost:${PORT}/`);
-    process.exit(0);
+    if (bindRetries < MAX_BIND_RETRIES) {
+      bindRetries++;
+      console.log(`[Notice] Port ${PORT} is releasing previous connection. Retrying in 1.5s (${bindRetries}/${MAX_BIND_RETRIES})...`);
+      setTimeout(() => {
+        try { server.close(); } catch (_) {}
+        server.listen(PORT, '0.0.0.0');
+      }, 1500);
+    } else {
+      console.log(`[Notice] Port ${PORT} is already in use. Pro Billbook is active at http://localhost:${PORT}/`);
+      process.exit(0);
+    }
   } else {
     console.error('[Server Error]:', err);
   }
